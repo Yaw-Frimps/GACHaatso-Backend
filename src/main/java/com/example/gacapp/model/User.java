@@ -1,4 +1,4 @@
-package com.example.gacapp;
+package com.example.gacapp.model;
 
 import jakarta.persistence.*;
 import lombok.Data;

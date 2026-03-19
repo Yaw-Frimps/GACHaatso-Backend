@@ -1,5 +1,6 @@
-package com.example.gacapp;
+package com.example.gacapp.controller;
 
+import com.example.gacapp.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;

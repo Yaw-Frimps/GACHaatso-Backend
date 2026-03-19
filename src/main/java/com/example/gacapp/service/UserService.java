@@ -1,4 +1,4 @@
-package com.example.gacapp;
+package com.example.gacapp.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
