@@ -7,6 +7,8 @@ import com.example.gacapp.repository.ContactMessageRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 public class ContactMessageService {
@@ -25,6 +27,12 @@ public class ContactMessageService {
     }
 
 
+    public List<ContactMessageResponse> getAllMessages() {
+        return contactMessageRepository.findAll().stream()
+                .map(this::mapToResponse)
+                .toList();
+    }
+
     private ContactMessageResponse mapToResponse(ContactMessage contactMessage){
         return ContactMessageResponse.builder()
                 .id(contactMessage.getId())
@@ -36,5 +44,11 @@ public class ContactMessageService {
                 .createdAt(contactMessage.getCreatedAt())
                 .updatedAt(contactMessage.getUpdatedAt())
                 .build();
+    }
+
+    public ContactMessageResponse getMessageById(String id) {
+        ContactMessage contactMessage = contactMessageRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Message not found"));
+        return mapToResponse(contactMessage);
     }
 }
