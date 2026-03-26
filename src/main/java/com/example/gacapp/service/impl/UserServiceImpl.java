@@ -8,6 +8,7 @@ import com.example.gacapp.model.User;
 import com.example.gacapp.repository.UserRepository;
 import com.example.gacapp.security.JwtService;
 import com.example.gacapp.service.UserService;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -23,6 +24,7 @@ public class UserServiceImpl implements UserService {
     private final JwtService jwtService;
 
     @Override
+    @Transactional
     public RegisterResponse registerUser(RegisterRequest request) {
         log.info("Attempting to register user with email: {}", request.getEmail());
         
@@ -67,6 +69,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional
     public LoginResponse loginUser(LoginRequest request) {
         log.info("Attempting to login user with email: {}", request.getEmail());
 
