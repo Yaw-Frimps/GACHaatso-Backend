@@ -1,15 +1,11 @@
 package com.example.gacapp.service;
 
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Service;
+import com.example.gacapp.dto.request.LoginRequest;
+import com.example.gacapp.dto.request.RegisterRequest;
+import com.example.gacapp.dto.response.LoginResponse;
+import com.example.gacapp.dto.response.RegisterResponse;
 
-@Service
-@Slf4j
-@RequiredArgsConstructor
-public class UserService {
-        public String getUserGreeting() {
-            log.info("Generating user greeting");
-            return "Hello, User!";
-        }
+public interface UserService {
+        RegisterResponse registerUser(RegisterRequest request);
+        LoginResponse loginUser(LoginRequest request);
 }
