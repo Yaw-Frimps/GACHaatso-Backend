@@ -13,6 +13,17 @@ spring:
       hibernate:
         format_sql: true
         dialect: org.hibernate.dialect.PostgreSQLDialect
+  mail:
+    host: ${MAIL_HOST}
+    port: ${MAIL_PORT}
+    username: ${MAIL_USERNAME}
+    password: ${MAIL_PASSWORD}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
 
 server:
   port: 8081
@@ -27,6 +38,8 @@ app:
     password: ${ADMIN_PASSWORD}
     first-name: ${ADMIN_FIRSTNAME}
     last-name: ${ADMIN_LASTNAME}
+
+
 
 logging:
   level:

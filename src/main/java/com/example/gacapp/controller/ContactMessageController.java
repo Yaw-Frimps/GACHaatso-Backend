@@ -28,14 +28,14 @@ public class ContactMessageController {
     }
 
     @GetMapping()
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN') && hasRole('LEADER')")
     public ResponseEntity<ApiResponse<List<ContactMessageResponse>>> getAllMessages(){
         List<ContactMessageResponse> messages = contactMessageService.getAllMessages();
         return ResponseEntity.ok(ApiResponse.success(messages, "Messages retrieved successfully"));
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN') && hasRole('LEADER')")
     public ResponseEntity<ApiResponse<ContactMessageResponse>> getMessageById(@PathVariable String id){
         ContactMessageResponse response = contactMessageService.getContactMessageById(id);
         return ResponseEntity.ok(ApiResponse.success(response, "Message retrieved successfully"));
