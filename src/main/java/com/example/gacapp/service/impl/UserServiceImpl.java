@@ -4,7 +4,9 @@ import com.example.gacapp.dto.request.LoginRequest;
 import com.example.gacapp.dto.request.RegisterRequest;
 import com.example.gacapp.dto.response.LoginResponse;
 import com.example.gacapp.dto.response.RegisterResponse;
+import com.example.gacapp.model.ApprovalStatus;
 import com.example.gacapp.model.User;
+import com.example.gacapp.model.UserRole;
 import com.example.gacapp.repository.UserRepository;
 import com.example.gacapp.security.JwtService;
 import com.example.gacapp.service.UserService;
@@ -39,6 +41,16 @@ public class UserServiceImpl implements UserService {
         }
 
         try {
+            ApprovalStatus approvalStatus;
+            boolean enabled;
+
+            if(request.getRole() == UserRole.LEADER){
+                approvalStatus = ApprovalStatus.PENDING;
+                enabled = false;
+            }else{
+                approvalStatus = ApprovalStatus.NOT_REQUIRED;
+                enabled = true;
+            }
             // Create new user entity
             var user = User.builder()
                     .firstName(request.getFirstName())
@@ -46,10 +58,13 @@ public class UserServiceImpl implements UserService {
                     .email(request.getEmail())
                     .password(passwordEncoder.encode(request.getPassword()))
                     .role(request.getRole())
+                    .approvalStatus(approvalStatus)
+                    .enabled(enabled)
                     .build();
 
             // Save user to database
             var savedUser = userRepository.save(user);
+
             log.info("User successfully registered with id: {}", savedUser.getId());
 
             // Build and return response

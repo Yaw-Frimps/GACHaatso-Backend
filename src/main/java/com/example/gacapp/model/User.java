@@ -43,10 +43,18 @@ public class User implements UserDetails {
     private String password;
     @Enumerated(EnumType.STRING)
     private UserRole role;
+    @Enumerated(EnumType.STRING)
+    private ApprovalStatus approvalStatus;
+
+    private Boolean enabled;
+
     @CreatedDate
     private LocalDateTime createdAt;
+
     @UpdateTimestamp
     private LocalDateTime updatedAt;
+
+    private LocalDateTime approvedAt;
 
     // UserDetails implementation
     @Override
@@ -81,6 +89,6 @@ public class User implements UserDetails {
 
     @Override
     public boolean isEnabled() {
-        return true;
+        return enabled;
     }
 }

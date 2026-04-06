@@ -1,5 +1,6 @@
 package com.example.gacapp.security;
 
+import com.example.gacapp.model.User;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
@@ -16,7 +17,6 @@ import java.util.Map;
 import java.util.function.Function;
 
 @Service
-
 public class JwtService {
 
     @Value("${jwt.secret}")
@@ -25,17 +25,38 @@ public class JwtService {
     @Value("${jwt.expiration}")
     private long jwtExpiration;
 
+    // ================= EXTRACT =================
+
     public String extractUsername(String token) {
         return extractClaim(token, Claims::getSubject);
     }
 
-    private <T> T extractClaim(String token, Function<Claims, T> claimsResolver) {
-        final Claims claims = extractAllClaims(token);
-        return claimsResolver.apply(claims);
+    public String extractRole(String token) {
+        return extractClaim(token, claims -> claims.get("role", String.class));
     }
 
+    public String extractApprovalStatus(String token) {
+        return extractClaim(token, claims -> claims.get("approval", String.class));
+    }
+
+    public <T> T extractClaim(String token, Function<Claims, T> resolver) {
+        final Claims claims = extractAllClaims(token);
+        return resolver.apply(claims);
+    }
+
+    // ================= GENERATE =================
+
     public String generateToken(UserDetails userDetails) {
-        return generateToken(new HashMap<>(), userDetails);
+
+        Map<String, Object> claims = new HashMap<>();
+
+        if (userDetails instanceof User user) {
+            claims.put("role", user.getRole().name());
+            claims.put("approval", user.getApprovalStatus().name());
+            claims.put("userId", user.getId()); // optional but recommended
+        }
+
+        return generateToken(claims, userDetails);
     }
 
     public String generateToken(Map<String, Object> extraClaims, UserDetails userDetails) {
@@ -48,10 +69,31 @@ public class JwtService {
                 .compact();
     }
 
+    // ================= VALIDATION =================
+
     public boolean isTokenValid(String token, UserDetails userDetails) {
+
         final String username = extractUsername(token);
-        return (username.equals(userDetails.getUsername())) && !isTokenExpired(token);
+
+        boolean basicValid =
+                username.equals(userDetails.getUsername()) &&
+                        !isTokenExpired(token);
+
+        if (userDetails instanceof User user) {
+
+            String role = extractRole(token);
+            String approval = extractApprovalStatus(token);
+
+            boolean roleMatches = role.equals(user.getRole().name());
+            boolean approvalMatches = approval.equals(user.getApprovalStatus().name());
+
+            return basicValid && roleMatches && approvalMatches;
+        }
+
+        return basicValid;
     }
+
+    // ================= INTERNAL =================
 
     private boolean isTokenExpired(String token) {
         return extractExpiration(token).before(new Date());

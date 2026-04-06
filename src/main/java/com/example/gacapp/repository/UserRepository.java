@@ -1,16 +1,23 @@
 package com.example.gacapp.repository;
 
+import com.example.gacapp.model.ApprovalStatus;
 import com.example.gacapp.model.User;
+import com.example.gacapp.model.UserRole;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 
 @Repository
 public interface UserRepository extends JpaRepository<User, String> {
     Optional<User> findByEmail(String email);
+
+    Page<User> findByRoleAndApprovalStatus(UserRole role, ApprovalStatus status, Pageable pageable);
 
     boolean existsByEmail(@NotBlank(message = "Email cannot be empty") @Email(message = "Email should be valid") String email);
 }
