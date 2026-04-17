@@ -51,9 +51,20 @@ public class JwtService {
         Map<String, Object> claims = new HashMap<>();
 
         if (userDetails instanceof User user) {
-            claims.put("role", user.getRole().name());
-            claims.put("approval", user.getApprovalStatus().name());
-            claims.put("userId", user.getId()); // optional but recommended
+
+            // ✅ Role (safe)
+            String role = user.getRole() != null
+                    ? user.getRole().name()
+                    : "USER"; // fallback
+
+            // ✅ Approval (NULL-SAFE FIX)
+            String approval = user.getApprovalStatus() != null
+                    ? user.getApprovalStatus().name()
+                    : "NOT_REQUIRED"; // fallback
+
+            claims.put("role", role);
+            claims.put("approval", approval);
+            claims.put("userId", user.getId());
         }
 
         return generateToken(claims, userDetails);
@@ -84,8 +95,16 @@ public class JwtService {
             String role = extractRole(token);
             String approval = extractApprovalStatus(token);
 
-            boolean roleMatches = role.equals(user.getRole().name());
-            boolean approvalMatches = approval.equals(user.getApprovalStatus().name());
+            String userRole = user.getRole() != null
+                    ? user.getRole().name()
+                    : "";
+
+            String userApproval = user.getApprovalStatus() != null
+                    ? user.getApprovalStatus().name()
+                    : "NOT_REQUIRED";
+
+            boolean roleMatches = role.equals(userRole);
+            boolean approvalMatches = approval.equals(userApproval);
 
             return basicValid && roleMatches && approvalMatches;
         }

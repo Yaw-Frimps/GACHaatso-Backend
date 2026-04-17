@@ -9,4 +9,6 @@ public interface AdminService {
     ApprovalStatusResponse rejectLeader (String userId);
 
     Page<ApprovalStatusResponse> getPendingLeaders(Pageable pageable);
+
+    void deleteLeader(String userId);
 }

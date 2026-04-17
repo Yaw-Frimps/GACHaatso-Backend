@@ -2,6 +2,7 @@ package com.example.gacapp.service.impl;
 
 import com.example.gacapp.dto.response.ApprovalStatusResponse;
 import com.example.gacapp.exception.ApprovalRejectionException;
+import com.example.gacapp.exception.UserNotFoundException;
 import com.example.gacapp.model.ApprovalStatus;
 import com.example.gacapp.model.User;
 import com.example.gacapp.model.UserRole;
@@ -26,15 +27,16 @@ public class AdminServiceImpl implements AdminService {
     private final UserRepository userRepository;
     private final EmailService emailService;
 
-    // ==============================
-    // APPROVE LEADER
-    // ==============================
     @Override
     @CacheEvict(value = "pendingLeaders", allEntries = true)
     public ApprovalStatusResponse approveLeader(String userId) {
         log.info("Approving leader with ID: {}", userId);
 
         User user = getLeaderOrThrow(userId);
+
+        if (user.getApprovalStatus() == ApprovalStatus.APPROVED) {
+            throw new ApprovalRejectionException("Leader has already been approved");
+        }
 
         user.setApprovalStatus(ApprovalStatus.APPROVED);
         user.setEnabled(true);
@@ -52,15 +54,16 @@ public class AdminServiceImpl implements AdminService {
         return mapToResponse(user);
     }
 
-    // ==============================
-    // REJECT LEADER
-    // ==============================
     @Override
     @CacheEvict(value = "pendingLeaders", allEntries = true)
     public ApprovalStatusResponse rejectLeader(String userId) {
         log.info("Rejecting leader with ID: {}", userId);
 
         User user = getLeaderOrThrow(userId);
+
+        if (user.getApprovalStatus() == ApprovalStatus.APPROVED) {
+            throw new ApprovalRejectionException("Leader has already been rejected");
+        }
 
         user.setApprovalStatus(ApprovalStatus.REJECTED);
         user.setEnabled(false);
@@ -76,9 +79,6 @@ public class AdminServiceImpl implements AdminService {
         return mapToResponse(user);
     }
 
-    // ==============================
-    // GET PENDING LEADERS (PAGINATED + CACHED)
-    // ==============================
     @Override
     @Cacheable(value = "pendingLeaders", key = "#pageable.pageNumber + '-' + #pageable.pageSize")
     public Page<ApprovalStatusResponse> getPendingLeaders(Pageable pageable) {
@@ -90,9 +90,24 @@ public class AdminServiceImpl implements AdminService {
                 .map(this::mapToResponse);
     }
 
-    // ==============================
-    // HELPER METHODS
-    // ==============================
+    @Override
+    @CacheEvict(value = "pendingLeaders", allEntries = true)
+    public void deleteLeader(String userId) {
+        log.info("Deleting leader with id {}", userId);
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UserNotFoundException("User not found"));
+
+        if(user.getRole() != UserRole.LEADER){
+            throw new ApprovalRejectionException("Only Leader accounts can be deleted");
+        }
+
+        user.setDeleted(true);
+        userRepository.delete(user);
+
+        log.info("Leader with ID {} successfully deleted", userId);
+    }
+
 
     private User getLeaderOrThrow(String userId) {
         User user = userRepository.findById(userId)

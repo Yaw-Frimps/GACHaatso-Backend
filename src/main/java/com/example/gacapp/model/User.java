@@ -44,9 +44,14 @@ public class User implements UserDetails {
     @Enumerated(EnumType.STRING)
     private UserRole role;
     @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
     private ApprovalStatus approvalStatus;
 
-    private Boolean enabled;
+    @Column(nullable = false)
+    private boolean enabled;
+
+    @Column(nullable = false)
+    private boolean deleted = false;
 
     @CreatedDate
     private LocalDateTime createdAt;
@@ -89,6 +94,9 @@ public class User implements UserDetails {
 
     @Override
     public boolean isEnabled() {
-        return enabled;
+        if (this.role == UserRole.LEADER) {
+            return this.approvalStatus == ApprovalStatus.APPROVED;
+        }
+        return true;
     }
 }

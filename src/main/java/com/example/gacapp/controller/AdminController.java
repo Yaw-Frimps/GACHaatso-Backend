@@ -32,9 +32,6 @@ public class AdminController {
         return ResponseEntity.ok(ApiResponse.success(pendingLeaders, "Pending leaders fetched successfully"));
     }
 
-    // ===========================
-    // Approve a Leader
-    // ===========================
     @PatchMapping("/approve/{userId}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<ApprovalStatusResponse>> approveLeader(@PathVariable String userId){
@@ -42,13 +39,20 @@ public class AdminController {
         return ResponseEntity.ok(ApiResponse.success(response, "Leader approved"));
     }
 
-    // ===========================
-    // Reject a Leader
-    // ===========================
+
     @PatchMapping("/reject/{userId}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<ApprovalStatusResponse>> rejectLeader(@PathVariable String userId){
         ApprovalStatusResponse response = adminService.rejectLeader(userId);
         return ResponseEntity.ok(ApiResponse.success(response, "Leader rejected"));
+    }
+
+    @DeleteMapping("/delete/{userId}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ApiResponse<Void>> deleteLeader(@PathVariable String userId){
+        adminService.deleteLeader(userId);
+        return ResponseEntity.ok(
+                ApiResponse.success(null, "Leader deleted successfully")
+        );
     }
 }
