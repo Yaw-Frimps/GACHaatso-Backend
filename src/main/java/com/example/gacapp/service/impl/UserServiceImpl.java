@@ -150,7 +150,7 @@ public class UserServiceImpl implements UserService {
 
         // LEADER → must be approved
         if (user.getRole() == UserRole.LEADER) {
-            return status != null && status == ApprovalStatus.APPROVED;
+            return status == ApprovalStatus.APPROVED;
         }
 
         return false;

@@ -4,6 +4,7 @@ import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.MailException;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
@@ -21,6 +22,9 @@ public class EmailService {
 
     private final JavaMailSender mailSender;
     private final SpringTemplateEngine templateEngine;
+
+    @Value("${spring.mail.password}")
+    private String mailPassword;
 
     // -----------------------------
     // PASSWORD RESET EMAIL
@@ -62,6 +66,8 @@ public class EmailService {
     // -----------------------------
     private void sendEmail(String to, String subject, String templateName, EmailContextConfigurer configurer) throws MessagingException {
         log.info("Preparing email '{}' for {}", subject, to);
+
+        log.info("Mail Password {}", mailPassword); // Debugging line - remove in production
 
         try {
             // Prepare Thymeleaf context

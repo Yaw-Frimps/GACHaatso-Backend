@@ -3,7 +3,7 @@ package com.example.gacapp.model;
 public enum MessageType {
     GENERAL_ENQUIRY,
     PRAYER_REQUEST,
-    MEMBERSHIP_INFO,
+    MINISTRY_INFO,
     VOLUNTEER_OPPORTUNITIES,
     OTHER
 

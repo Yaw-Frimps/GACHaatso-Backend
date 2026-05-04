@@ -25,7 +25,7 @@ public class ContactMessageServiceImpl implements ContactMessageService {
                 .name(request.getName())
                 .email(request.getEmail())
                 .phone(request.getPhone())
-                .messageType(request.getMessageType())
+                .messageType(String.valueOf(request.getMessageType()))
                 .message(request.getMessage())
                 .build();
 
@@ -56,7 +56,7 @@ public class ContactMessageServiceImpl implements ContactMessageService {
                 .name(contactMessage.getName())
                 .email(contactMessage.getEmail())
                 .phone(contactMessage.getPhone())
-                .messageType(contactMessage.getMessageType().name())
+                .messageType(contactMessage.getMessageType())
                 .message(contactMessage.getMessage())
                 .createdAt(contactMessage.getCreatedAt())
                 .updatedAt(contactMessage.getUpdatedAt())

@@ -16,20 +16,15 @@ spring:
   mail:
     host: smtp.gmail.com
     port: 587
-    username: ${MAIL_USERNAME}
+    username: yzealow@gmail.com                                                      #${MAIL_USERNAME}
     password: ${MAIL_PASSWORD}
     properties:
-      mail:
-        smtp:
-          auth: true
-          starttls:
-            enable: true
-            required: true
-          connectiontimeout: 5000
-          timeout: 5000
-          writetimeout: 5000
-          ssl:
-            trust: smtp.gmail.com
+      mail.smtp.auth: true
+      mail.smtp.starttls.enable: true
+      mail.smtp.starttls.required: true
+      mail.smtp.connectiontimeout: 5000
+      mail.smtp.timeout: 5000
+      mail.smtp.writetimeout: 5000
 
 server:
   port: 8081
@@ -52,3 +47,4 @@ logging:
     root: INFO
     org.springframework.web: DEBUG
     com.example.gacapp: DEBUG
+    org.eclipse.angus.mail: DEBUG
