@@ -32,6 +32,18 @@ public class AdminController {
         return ResponseEntity.ok(ApiResponse.success(pendingLeaders, "Pending leaders fetched successfully"));
     }
 
+    @GetMapping("/approved-leaders")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ApiResponse<Page<ApprovalStatusResponse>>> getApprovedLeaders(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
+    ) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<ApprovalStatusResponse> approvedLeaders = adminService.getApprovedLeaders(pageable);
+        return ResponseEntity.ok(ApiResponse.success(approvedLeaders, "Approved leaders fetched successfully"));
+    }
+
+
     @PatchMapping("/approve/{userId}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<ApprovalStatusResponse>> approveLeader(@PathVariable String userId){

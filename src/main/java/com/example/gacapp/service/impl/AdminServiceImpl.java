@@ -82,30 +82,47 @@ public class AdminServiceImpl implements AdminService {
     @Override
     @Cacheable(value = "pendingLeaders", key = "#pageable.pageNumber + '-' + #pageable.pageSize")
     public Page<ApprovalStatusResponse> getPendingLeaders(Pageable pageable) {
-        log.info("Fetching pending leaders (page: {}, size: {})",
-                pageable.getPageNumber(), pageable.getPageSize());
+
 
         return userRepository
-                .findByRoleAndApprovalStatus(UserRole.LEADER, ApprovalStatus.PENDING, pageable)
+                .findByRoleAndApprovalStatus(
+                        UserRole.LEADER,
+                        ApprovalStatus.PENDING,
+                        pageable
+                )
                 .map(this::mapToResponse);
     }
 
     @Override
-    @CacheEvict(value = "pendingLeaders", allEntries = true)
+    @Cacheable(value = "approvedLeaders", key = "#pageable.pageNumber + '-' + #pageable.pageSize")
+    public Page<ApprovalStatusResponse> getApprovedLeaders(Pageable pageable) {
+
+
+        return userRepository
+                .findByRoleAndApprovalStatus(
+                        UserRole.LEADER,
+                        ApprovalStatus.APPROVED,
+                        pageable
+                )
+                .map(this::mapToResponse);
+    }
+
+    @Override
+    @CacheEvict(value = {"pendingLeaders", "approvedLeaders"}, allEntries = true)
     public void deleteLeader(String userId) {
-        log.info("Deleting leader with id {}", userId);
 
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new UserNotFoundException("User not found"));
 
-        if(user.getRole() != UserRole.LEADER){
+        if (user.getRole() != UserRole.LEADER) {
             throw new ApprovalRejectionException("Only Leader accounts can be deleted");
         }
 
         user.setDeleted(true);
-        userRepository.delete(user);
+        user.setEnabled(false);
+        user.setApprovalStatus(ApprovalStatus.REJECTED);
 
-        log.info("Leader with ID {} successfully deleted", userId);
+        userRepository.save(user);
     }
 
 
@@ -123,6 +140,8 @@ public class AdminServiceImpl implements AdminService {
     private ApprovalStatusResponse mapToResponse(User user) {
         return ApprovalStatusResponse.builder()
                 .id(user.getId())
+                .firstName(user.getFirstName())
+                .lastName(user.getLastName())
                 .role(user.getRole().name())
                 .approvalStatus(user.getApprovalStatus().name())
                 .approvedAt(user.getApprovedAt())

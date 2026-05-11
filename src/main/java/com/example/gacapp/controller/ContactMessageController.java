@@ -6,11 +6,13 @@ import com.example.gacapp.dto.response.ContactMessageResponse;
 import com.example.gacapp.service.ContactMessageService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 
 /**
  * Controller for handling contact message operations.
@@ -43,8 +45,12 @@ public class ContactMessageController {
      */
     @GetMapping()
     @PreAuthorize("hasRole('ADMIN') && hasRole('LEADER')")
-    public ResponseEntity<ApiResponse<List<ContactMessageResponse>>> getAllMessages(){
-        List<ContactMessageResponse> messages = contactMessageService.getAllMessages();
+    public ResponseEntity<ApiResponse<Page<ContactMessageResponse>>> getAllMessages(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
+    ){
+        Pageable pageable = PageRequest.of(page, size);
+        Page<ContactMessageResponse> messages = contactMessageService.getAllMessages(pageable);
         return ResponseEntity.ok(ApiResponse.success(messages, "Messages retrieved successfully"));
     }
 

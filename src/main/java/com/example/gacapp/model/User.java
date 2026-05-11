@@ -8,6 +8,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.SQLRestriction;
 import org.hibernate.annotations.UpdateTimestamp;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
@@ -20,11 +21,15 @@ import java.util.Collection;
 import java.util.Collections;
 
 @Data
-@Table(name = "users")
+@Table(name = "users", indexes = {
+        @Index(name = "idx_user_email", columnList = "email"),
+        @Index(name = "idx_user_role_approval", columnList = "role, approvalStatus")
+})
 @Entity
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
+@SQLRestriction("deleted = false")
 @EntityListeners(AuditingEntityListener.class)
 public class User implements UserDetails {
 
@@ -37,6 +42,7 @@ public class User implements UserDetails {
     private String lastName;
     @NotBlank(message = "Email cannot be empty")
     @Email(message = "Email should be valid")
+    @Column(unique = true, nullable = false)
     private String email;
     @NotBlank(message = "Password cannot be empty")
     @Size(min = 6, message = "Password must be at least 6 characters long")
@@ -47,9 +53,11 @@ public class User implements UserDetails {
     @Column(nullable = false)
     private ApprovalStatus approvalStatus;
 
+    @Builder.Default
     @Column(nullable = false)
-    private boolean enabled;
+    private boolean enabled = false;
 
+    @Builder.Default
     @Column(nullable = false)
     private boolean deleted = false;
 

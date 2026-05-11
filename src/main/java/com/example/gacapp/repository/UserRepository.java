@@ -17,5 +17,11 @@ public interface UserRepository extends JpaRepository<User, String> {
 
     Page<User> findByRoleAndApprovalStatus(UserRole role, ApprovalStatus status, Pageable pageable);
 
+    Page<User> findByRoleAndApprovalStatusAndDeletedFalse(
+            UserRole role,
+            ApprovalStatus status,
+            Pageable pageable
+    );
+
     boolean existsByEmail(@NotBlank(message = "Email cannot be empty") @Email(message = "Email should be valid") String email);
 }

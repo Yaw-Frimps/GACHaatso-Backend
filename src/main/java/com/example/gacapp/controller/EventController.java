@@ -5,11 +5,13 @@ import com.example.gacapp.dto.response.ApiResponse;
 import com.example.gacapp.dto.response.EventResponse;
 import com.example.gacapp.service.EventService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/event")
@@ -26,8 +28,12 @@ public class EventController {
     }
 
     @GetMapping()
-    public ResponseEntity<ApiResponse<List<EventResponse>>> getAllEvents(){
-        List<EventResponse> response = eventService.getAllEvent();
+    public ResponseEntity<ApiResponse<Page<EventResponse>>> getAllEvents(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
+    ){
+        Pageable pageable = PageRequest.of(page, size);
+        Page<EventResponse> response = eventService.getAllEvent(pageable);
         return ResponseEntity.ok(ApiResponse.success(response,"Events retrieved successfully"));
     }
 

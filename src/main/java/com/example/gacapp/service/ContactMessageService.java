@@ -2,8 +2,8 @@ package com.example.gacapp.service;
 
 import com.example.gacapp.dto.request.ContactMessageRequest;
 import com.example.gacapp.dto.response.ContactMessageResponse;
-
-import java.util.List;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 /**
  * Service interface for handling contact message operations.
@@ -28,9 +28,10 @@ public interface ContactMessageService {
     ContactMessageResponse getContactMessageById(String id);
 
     /**
-     * Retrieves all contact messages stored in the system.
+     * Retrieves all contact messages stored in the system (paginated).
      *
-     * @return A list of all contact message responses.
+     * @param pageable The pagination information.
+     * @return A page of contact message responses.
      */
-    List<ContactMessageResponse> getAllMessages();
+    Page<ContactMessageResponse> getAllMessages(Pageable pageable);
 }
