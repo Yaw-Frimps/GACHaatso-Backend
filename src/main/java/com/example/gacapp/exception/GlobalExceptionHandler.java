@@ -1,6 +1,8 @@
 package com.example.gacapp.exception;
 
 import com.example.gacapp.dto.response.ApiResponse;
+import jakarta.servlet.http.HttpServletRequest;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -13,6 +15,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 @RestControllerAdvice
+@Slf4j
 public class GlobalExceptionHandler {
 
     // ================= VALIDATION =================
@@ -133,10 +136,27 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<ApiResponse<String>> handleGlobalException(Exception ex) {
-        return new ResponseEntity<>(
-                ApiResponse.error("An unexpected error occurred", "SYS_001", null),
-                HttpStatus.INTERNAL_SERVER_ERROR
-        );
+    public ResponseEntity<ApiResponse<?>> handleGlobalException(
+            Exception ex,
+            HttpServletRequest request
+    ) {
+
+        String path = request.getRequestURI();
+
+        // Ignore Swagger/OpenAPI endpoints
+        if (path.startsWith("/v3/api-docs")
+                || path.startsWith("/swagger-ui")) {
+
+            throw new RuntimeException(ex);
+        }
+
+        log.error("Unhandled exception occurred", ex);
+
+        return ResponseEntity
+                .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(ApiResponse.error(
+                        "An unexpected error occurred",
+                        "SYS_001"
+                ));
     }
 }

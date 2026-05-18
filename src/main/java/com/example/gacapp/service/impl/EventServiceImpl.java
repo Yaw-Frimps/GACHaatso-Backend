@@ -6,6 +6,7 @@ import com.example.gacapp.exception.EventNotFoundException;
 import com.example.gacapp.model.Event;
 import com.example.gacapp.repository.EventRepository;
 import com.example.gacapp.service.EventService;
+import com.example.gacapp.util.FileStorageService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheEvict;
@@ -13,6 +14,10 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -20,7 +25,16 @@ import org.springframework.stereotype.Service;
 public class EventServiceImpl implements EventService {
 
     private final EventRepository eventRepository;
+    private final FileStorageService fileStorageService;
 
+
+    public String uploadImage(MultipartFile file){
+        String id = UUID.randomUUID().toString();
+        String storedFileName = fileStorageService.storeFile(file, "events", id, null);
+        return fileStorageService.getFileUrl("events", id, storedFileName);
+    }
+
+    @Transactional
     @Override
     @CacheEvict(value = "events", allEntries = true)
     public EventResponse createEvent(EventRequest request) {
@@ -28,6 +42,9 @@ public class EventServiceImpl implements EventService {
         Event event = Event.builder()
                 .title(request.getTitle())
                 .description(request.getDescription())
+                .location(request.getLocation())
+                .date(request.getDate())
+                .imageUrl(request.getImageUrl())
                 .build();
         
         Event savedEvent = eventRepository.save(event);
@@ -53,6 +70,7 @@ public class EventServiceImpl implements EventService {
                 .map(this::mapToResponse);
     }
 
+    @Transactional
     @Override
     @CacheEvict(value = "events", allEntries = true)
     public EventResponse updateEvent(String eventId, EventRequest request) {
@@ -63,10 +81,14 @@ public class EventServiceImpl implements EventService {
 
         event.setTitle(request.getTitle());
         event.setDescription(request.getDescription());
+        event.setLocation(request.getLocation());
+        event.setDate(request.getDate());
+        event.setImageUrl(request.getImageUrl());
 
         return mapToResponse(eventRepository.save(event));
     }
 
+    @Transactional
     @Override
     @CacheEvict(value = "events", allEntries = true)
     public void deleteEvent(String eventId) {
@@ -83,6 +105,9 @@ public class EventServiceImpl implements EventService {
                 .userId(event.getId())
                 .title(event.getTitle())
                 .description(event.getDescription())
+                .location(event.getLocation())
+                .date(event.getDate())
+                .imageUrl(event.getImageUrl())
                 .createdAt(event.getCreatedAt())
                 .updatedAt(event.getUpdatedAt())
                 .build();

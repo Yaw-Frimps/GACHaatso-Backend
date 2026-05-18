@@ -14,6 +14,7 @@ import com.example.gacapp.service.UserService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -30,6 +31,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
+    @CacheEvict(value = "users", allEntries = true) // Clear user cache on registration
     public RegisterResponse registerUser(RegisterRequest request) {
         log.info("Attempting to register user with email: {}", request.getEmail());
 

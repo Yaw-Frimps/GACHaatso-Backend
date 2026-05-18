@@ -55,6 +55,7 @@ public class ContactMessage {
      * The actual content of the message.
      */
     @NotBlank(message = "Message is required")
+    @Column(columnDefinition = "TEXT")
     private String message;
 
     /**

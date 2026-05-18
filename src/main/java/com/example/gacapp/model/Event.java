@@ -26,8 +26,17 @@ public class Event {
     @Column(nullable = false, name = "title")
     private String title;
 
-    @Column(nullable = false)
+    @Column(nullable = false, columnDefinition = "TEXT", name = "description")
     private String description;
+
+    @Column(nullable = false, name = "location")
+    private String location;
+
+    @Column(nullable = false, name = "date")
+    private LocalDateTime date;
+
+    @Column(name = "image_url", length = 1000)
+    private String imageUrl;
 
     @CreatedDate
     private LocalDateTime createdAt;

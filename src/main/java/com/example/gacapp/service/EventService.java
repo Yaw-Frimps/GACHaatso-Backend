@@ -5,11 +5,13 @@ import com.example.gacapp.dto.response.EventResponse;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 @Service
 public interface EventService {
     EventResponse createEvent(EventRequest request);
     EventResponse getEventById(String eventId);
+    String uploadImage(MultipartFile file);
     Page<EventResponse> getAllEvent(Pageable pageable);
     EventResponse updateEvent(String eventId, EventRequest request);
     void deleteEvent(String eventId);

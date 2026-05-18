@@ -28,7 +28,7 @@ public class AdminServiceImpl implements AdminService {
     private final EmailService emailService;
 
     @Override
-    @CacheEvict(value = "pendingLeaders", allEntries = true)
+    @CacheEvict(value = {"pendingLeaders", "approvedLeaders"}, allEntries = true)
     public ApprovalStatusResponse approveLeader(String userId) {
         log.info("Approving leader with ID: {}", userId);
 
@@ -55,13 +55,13 @@ public class AdminServiceImpl implements AdminService {
     }
 
     @Override
-    @CacheEvict(value = "pendingLeaders", allEntries = true)
+    @CacheEvict(value = {"pendingLeaders", "approvedLeaders"}, allEntries = true)
     public ApprovalStatusResponse rejectLeader(String userId) {
         log.info("Rejecting leader with ID: {}", userId);
 
         User user = getLeaderOrThrow(userId);
 
-        if (user.getApprovalStatus() == ApprovalStatus.APPROVED) {
+        if (user.getApprovalStatus() == ApprovalStatus.REJECTED) {
             throw new ApprovalRejectionException("Leader has already been rejected");
         }
 

@@ -11,6 +11,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 
 @RestController
@@ -35,6 +36,13 @@ public class EventController {
         Pageable pageable = PageRequest.of(page, size);
         Page<EventResponse> response = eventService.getAllEvent(pageable);
         return ResponseEntity.ok(ApiResponse.success(response,"Events retrieved successfully"));
+    }
+
+    @PostMapping("/upload-image")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ApiResponse<String>> uploadEventImage(@RequestParam("file") MultipartFile file) {
+        String imageUrl = eventService.uploadImage(file);
+        return ResponseEntity.ok(ApiResponse.success(imageUrl, "Image uploaded successfully"));
     }
 
     @PostMapping("/{eventId}")
