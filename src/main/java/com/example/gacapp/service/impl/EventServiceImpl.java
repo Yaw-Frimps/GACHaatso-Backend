@@ -6,7 +6,7 @@ import com.example.gacapp.exception.EventNotFoundException;
 import com.example.gacapp.model.Event;
 import com.example.gacapp.repository.EventRepository;
 import com.example.gacapp.service.EventService;
-import com.example.gacapp.util.FileStorageService;
+import com.example.gacapp.util.FileStorageServiceImpl;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheEvict;
@@ -25,7 +25,7 @@ import java.nio.file.Paths;
 public class EventServiceImpl implements EventService {
 
     private final EventRepository eventRepository;
-    private final FileStorageService fileStorageService;
+    private final FileStorageServiceImpl fileStorageService;
 
     private static final String EVENT = "events";
     private static final String EVENT_NOT_FOUND_WITH_ID = "Event not found with id: ";
