@@ -17,7 +17,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.util.UUID;
+import java.nio.file.Paths;
 
 @Service
 @RequiredArgsConstructor
@@ -27,28 +27,46 @@ public class EventServiceImpl implements EventService {
     private final EventRepository eventRepository;
     private final FileStorageService fileStorageService;
 
-
-    public String uploadImage(MultipartFile file){
-        String id = UUID.randomUUID().toString();
-        String storedFileName = fileStorageService.storeFile(file, "events", id, null);
-        return fileStorageService.getFileUrl("events", id, storedFileName);
-    }
+    private static final String EVENT = "events";
+    private static final String EVENT_NOT_FOUND_WITH_ID = "Event not found with id: ";
 
     @Transactional
     @Override
     @CacheEvict(value = "events", allEntries = true)
-    public EventResponse createEvent(EventRequest request) {
+    public EventResponse createEvent(EventRequest request, MultipartFile file) {
+
         log.info("Creating event");
+
         Event event = Event.builder()
                 .title(request.getTitle())
                 .description(request.getDescription())
                 .location(request.getLocation())
                 .date(request.getDate())
-                .imageUrl(request.getImageUrl())
                 .build();
-        
+
         Event savedEvent = eventRepository.save(event);
-        log.info("Saved event to database with id {}", savedEvent.getId());
+
+        if (file != null && !file.isEmpty()) {
+
+            String storedFileName = fileStorageService.storeFile(
+                    file,
+                    EVENT,
+                    savedEvent.getId(),
+                    null
+            );
+
+            String imageUrl = fileStorageService.getFileUrl(
+                    EVENT,
+                    savedEvent.getId(),
+                    storedFileName
+            );
+
+            savedEvent.setImageUrl(imageUrl);
+
+            savedEvent = eventRepository.save(savedEvent);
+        }
+
+        log.info("Saved event with id {}", savedEvent.getId());
 
         return mapToResponse(savedEvent);
     }
@@ -56,16 +74,27 @@ public class EventServiceImpl implements EventService {
     @Override
     @Cacheable(value = "events", key = "#eventId")
     public EventResponse getEventById(String eventId) {
+
         log.info("Finding event with id {}", eventId);
+
         return eventRepository.findById(eventId)
                 .map(this::mapToResponse)
-                .orElseThrow(() -> new EventNotFoundException("Event not found with id: " + eventId));
+                .orElseThrow(() ->
+                        new EventNotFoundException(
+                                EVENT_NOT_FOUND_WITH_ID + eventId
+                        )
+                );
     }
 
     @Override
-    @Cacheable(value = "events", key = "#pageable.pageNumber + '-' + #pageable.pageSize")
+    @Cacheable(
+            value = "events",
+            key = "#pageable.pageNumber + '-' + #pageable.pageSize + '-' + #pageable.sort"
+    )
     public Page<EventResponse> getAllEvent(Pageable pageable) {
+
         log.info("Retrieving paginated events");
+
         return eventRepository.findAll(pageable)
                 .map(this::mapToResponse);
     }
@@ -73,36 +102,93 @@ public class EventServiceImpl implements EventService {
     @Transactional
     @Override
     @CacheEvict(value = "events", allEntries = true)
-    public EventResponse updateEvent(String eventId, EventRequest request) {
+    public EventResponse updateEvent(
+            String eventId,
+            EventRequest request,
+            MultipartFile file
+    ) {
+
         log.info("Updating event with id {}", eventId);
 
         Event event = eventRepository.findById(eventId)
-                .orElseThrow(() -> new EventNotFoundException("Event not found with Id: " + eventId));
+                .orElseThrow(() ->
+                        new EventNotFoundException(
+                                EVENT_NOT_FOUND_WITH_ID + eventId
+                        )
+                );
 
-        event.setTitle(request.getTitle());
-        event.setDescription(request.getDescription());
-        event.setLocation(request.getLocation());
-        event.setDate(request.getDate());
-        event.setImageUrl(request.getImageUrl());
+        if (request.getTitle() != null) {
+            event.setTitle(request.getTitle());
+        }
 
-        return mapToResponse(eventRepository.save(event));
+        if (request.getDescription() != null) {
+            event.setDescription(request.getDescription());
+        }
+
+        if (request.getLocation() != null) {
+            event.setLocation(request.getLocation());
+        }
+
+        if (request.getDate() != null) {
+            event.setDate(request.getDate());
+        }
+
+        if (file != null && !file.isEmpty()) {
+
+            String oldFileName = null;
+
+            if (event.getImageUrl() != null) {
+                oldFileName = Paths.get(event.getImageUrl())
+                        .getFileName()
+                        .toString();
+            }
+
+            String storedFileName = fileStorageService.storeFile(
+                    file,
+                    EVENT,
+                    event.getId(),
+                    oldFileName
+            );
+
+            String imageUrl = fileStorageService.getFileUrl(
+                    EVENT,
+                    event.getId(),
+                    storedFileName
+            );
+
+            event.setImageUrl(imageUrl);
+        }
+
+        Event updatedEvent = eventRepository.save(event);
+
+        log.info("Updated event with id {}", updatedEvent.getId());
+
+        return mapToResponse(updatedEvent);
     }
 
     @Transactional
     @Override
     @CacheEvict(value = "events", allEntries = true)
     public void deleteEvent(String eventId) {
+
         log.info("Deleting event with id {}", eventId);
 
         Event event = eventRepository.findById(eventId)
-                .orElseThrow(() -> new EventNotFoundException("Event not found"));
+                .orElseThrow(() ->
+                        new EventNotFoundException(
+                                EVENT_NOT_FOUND_WITH_ID + eventId
+                        )
+                );
 
         eventRepository.delete(event);
+
+        log.info("Deleted event with id {}", eventId);
     }
 
-    private EventResponse mapToResponse(Event event){
+    private EventResponse mapToResponse(Event event) {
+
         return EventResponse.builder()
-                .userId(event.getId())
+                .id(event.getId())
                 .title(event.getTitle())
                 .description(event.getDescription())
                 .location(event.getLocation())
