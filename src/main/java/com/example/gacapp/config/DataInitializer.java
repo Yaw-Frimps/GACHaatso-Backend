@@ -1,6 +1,7 @@
 package com.example.gacapp.config;
 
 import com.example.gacapp.exception.DataInitialisationException;
+import com.example.gacapp.model.ApprovalStatus;
 import com.example.gacapp.model.User;
 import com.example.gacapp.model.UserRole;
 import com.example.gacapp.repository.UserRepository;
@@ -47,6 +48,7 @@ public class DataInitializer implements CommandLineRunner {
                     .email(admin.getEmail())
                     .password(passwordEncoder.encode(admin.getPassword()))
                     .role(UserRole.ADMIN)
+                    .approvalStatus(ApprovalStatus.APPROVED)
                     .build();
 
             User savedUser = userRepository.save(adminUser);

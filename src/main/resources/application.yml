@@ -57,7 +57,7 @@ app:
     password: ${ADMIN_PASSWORD}
     first-name: ${ADMIN_FIRSTNAME}
     last-name: ${ADMIN_LASTNAME}
-  base-url: ${APP_BASE_URL:http://localhost:8081}
+  base-url: ${APP_BASE_URL}
 
 
 
