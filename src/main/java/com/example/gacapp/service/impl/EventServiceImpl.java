@@ -17,8 +17,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.nio.file.Paths;
-
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -34,8 +32,6 @@ public class EventServiceImpl implements EventService {
     @Override
     @CacheEvict(value = "events", allEntries = true)
     public EventResponse createEvent(EventRequest request, MultipartFile file) {
-
-        log.info("Creating event");
 
         Event event = Event.builder()
                 .title(request.getTitle())
@@ -61,42 +57,16 @@ public class EventServiceImpl implements EventService {
                     storedFileName
             );
 
+//            String imagePath = "/uploads/" + EVENT + "/" + savedEvent.getId() + "/" + storedFileName;
+
+//            savedEvent.setImageUrl(imagePath);
+
             savedEvent.setImageUrl(imageUrl);
 
             savedEvent = eventRepository.save(savedEvent);
         }
 
-        log.info("Saved event with id {}", savedEvent.getId());
-
         return mapToResponse(savedEvent);
-    }
-
-    @Override
-    @Cacheable(value = "events", key = "#eventId")
-    public EventResponse getEventById(String eventId) {
-
-        log.info("Finding event with id {}", eventId);
-
-        return eventRepository.findById(eventId)
-                .map(this::mapToResponse)
-                .orElseThrow(() ->
-                        new EventNotFoundException(
-                                EVENT_NOT_FOUND_WITH_ID + eventId
-                        )
-                );
-    }
-
-    @Override
-    @Cacheable(
-            value = "events",
-            key = "#pageable.pageNumber + '-' + #pageable.pageSize + '-' + #pageable.sort"
-    )
-    public Page<EventResponse> getAllEvent(Pageable pageable) {
-
-        log.info("Retrieving paginated events");
-
-        return eventRepository.findAll(pageable)
-                .map(this::mapToResponse);
     }
 
     @Transactional
@@ -108,39 +78,24 @@ public class EventServiceImpl implements EventService {
             MultipartFile file
     ) {
 
-        log.info("Updating event with id {}", eventId);
-
         Event event = eventRepository.findById(eventId)
                 .orElseThrow(() ->
-                        new EventNotFoundException(
-                                EVENT_NOT_FOUND_WITH_ID + eventId
-                        )
+                        new EventNotFoundException(EVENT_NOT_FOUND_WITH_ID + eventId)
                 );
 
-        if (request.getTitle() != null) {
-            event.setTitle(request.getTitle());
-        }
-
-        if (request.getDescription() != null) {
-            event.setDescription(request.getDescription());
-        }
-
-        if (request.getLocation() != null) {
-            event.setLocation(request.getLocation());
-        }
-
-        if (request.getDate() != null) {
-            event.setDate(request.getDate());
-        }
+        if (request.getTitle() != null) event.setTitle(request.getTitle());
+        if (request.getDescription() != null) event.setDescription(request.getDescription());
+        if (request.getLocation() != null) event.setLocation(request.getLocation());
+        if (request.getDate() != null) event.setDate(request.getDate());
 
         if (file != null && !file.isEmpty()) {
 
+            // ✅ FIX: extract filename from URL safely
             String oldFileName = null;
 
             if (event.getImageUrl() != null) {
-                oldFileName = Paths.get(event.getImageUrl())
-                        .getFileName()
-                        .toString();
+                oldFileName = event.getImageUrl()
+                        .substring(event.getImageUrl().lastIndexOf("/") + 1);
             }
 
             String storedFileName = fileStorageService.storeFile(
@@ -161,9 +116,25 @@ public class EventServiceImpl implements EventService {
 
         Event updatedEvent = eventRepository.save(event);
 
-        log.info("Updated event with id {}", updatedEvent.getId());
-
         return mapToResponse(updatedEvent);
+    }
+
+    @Override
+    @Cacheable(value = "events", key = "#eventId")
+    public EventResponse getEventById(String eventId) {
+
+        return eventRepository.findById(eventId)
+                .map(this::mapToResponse)
+                .orElseThrow(() ->
+                        new EventNotFoundException(EVENT_NOT_FOUND_WITH_ID + eventId)
+                );
+    }
+
+    @Override
+    @Cacheable(value = "events",
+            key = "#pageable.pageNumber + '-' + #pageable.pageSize + '-' + #pageable.sort")
+    public Page<EventResponse> getAllEvent(Pageable pageable) {
+        return eventRepository.findAll(pageable).map(this::mapToResponse);
     }
 
     @Transactional
@@ -171,22 +142,15 @@ public class EventServiceImpl implements EventService {
     @CacheEvict(value = "events", allEntries = true)
     public void deleteEvent(String eventId) {
 
-        log.info("Deleting event with id {}", eventId);
-
         Event event = eventRepository.findById(eventId)
                 .orElseThrow(() ->
-                        new EventNotFoundException(
-                                EVENT_NOT_FOUND_WITH_ID + eventId
-                        )
+                        new EventNotFoundException(EVENT_NOT_FOUND_WITH_ID + eventId)
                 );
 
         eventRepository.delete(event);
-
-        log.info("Deleted event with id {}", eventId);
     }
 
     private EventResponse mapToResponse(Event event) {
-
         return EventResponse.builder()
                 .id(event.getId())
                 .title(event.getTitle())

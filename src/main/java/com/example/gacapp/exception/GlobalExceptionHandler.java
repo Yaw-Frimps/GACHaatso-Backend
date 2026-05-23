@@ -115,6 +115,18 @@ public class GlobalExceptionHandler {
         );
     }
 
+    // ***************************************************************************
+
+    @ExceptionHandler(MaxUploadSizeExceededException.class)
+    public ResponseEntity<ApiResponse<String>> handleMaxUploadSizeExceededException(
+            MaxUploadSizeExceededException ex) {
+
+        return new ResponseEntity<>(
+                ApiResponse.error("File size exceeds maximum limit of 10MB", "FILE_001", null),
+                HttpStatus.PAYLOAD_TOO_LARGE
+        );
+    }
+
     // ================= EMAIL =================
 
     @ExceptionHandler(FailedToSendPasswordResetEmailException.class)

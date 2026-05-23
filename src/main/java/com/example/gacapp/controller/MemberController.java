@@ -13,6 +13,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -46,19 +47,21 @@ public class MemberController {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "500", description = "Internal server error")
     })
     public ResponseEntity<ApiResponse<MembersResponse>> createMember(
-            @RequestPart("member") String memberJson,
+            @RequestPart("member") MembersRequest request,
             @RequestPart(value = "file", required = false) MultipartFile file
-    ) throws JsonProcessingException {
-
-        MembersRequest request =
-                objectMapper.readValue(memberJson, MembersRequest.class);
+    ){
 
         MembersResponse response =
                 service.createMember(request, file);
 
-        return ResponseEntity.ok(
-                ApiResponse.success(response, "Member created successfully")
-        );
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(
+                        ApiResponse.success(
+                                response,
+                                "Member created successfully"
+                        )
+                );
     }
 
     @GetMapping("/{id}")

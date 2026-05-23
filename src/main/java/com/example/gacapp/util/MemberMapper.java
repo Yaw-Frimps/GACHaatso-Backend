@@ -3,15 +3,16 @@ package com.example.gacapp.util;
 import com.example.gacapp.dto.request.MembersRequest;
 import com.example.gacapp.dto.response.MembersResponse;
 import com.example.gacapp.model.Members;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Component;
 
+@Component
+@RequiredArgsConstructor
 public class MemberMapper {
 
-    // Prevent instantiation
-    private MemberMapper() {
-        throw new UnsupportedOperationException("Utility class");
-    }
+    public Members toEntity(MembersRequest request) {
+        if (request == null) return null;
 
-    public static Members toEntity(MembersRequest request) {
         return Members.builder()
                 .firstName(request.getFirstName())
                 .lastName(request.getLastName())
@@ -26,9 +27,11 @@ public class MemberMapper {
                 .build();
     }
 
-    public static MembersResponse toDTO(Members member) {
+    public MembersResponse toDTO(Members member) {
+        if (member == null) return null;
+
         return MembersResponse.builder()
-                .id(member.getId()) // FIXED (was getId())
+                .id(member.getId())
                 .firstName(member.getFirstName())
                 .lastName(member.getLastName())
                 .dateOfBirth(member.getDateOfBirth())
@@ -40,7 +43,7 @@ public class MemberMapper {
                 .residenceAddress(member.getResidenceAddress())
                 .occupation(member.getOccupation())
                 .emergencyNumber(member.getEmergencyNumber())
-                .imageUrl(member.getImageUrl())
+                .imageUrl(member.getImageUrl()) // already FULL URL from service
                 .createdAt(member.getCreatedAt())
                 .updatedAt(member.getUpdatedAt())
                 .build();
