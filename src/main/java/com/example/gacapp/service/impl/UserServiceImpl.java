@@ -31,7 +31,11 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    @CacheEvict(value = "users", allEntries = true) // Clear user cache on registration
+    @CacheEvict(
+            value = "pendingLeaders",
+            allEntries = true,
+            condition = "#request.role.name() == 'LEADER'"
+    )
     public RegisterResponse registerUser(RegisterRequest request) {
         log.info("Attempting to register user with email: {}", request.getEmail());
 

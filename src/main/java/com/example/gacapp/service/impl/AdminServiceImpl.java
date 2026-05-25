@@ -80,7 +80,7 @@ public class AdminServiceImpl implements AdminService {
     }
 
     @Override
-    @Cacheable(value = "pendingLeaders", key = "#pageable.pageNumber + '-' + #pageable.pageSize")
+    @Cacheable(value = "pendingLeaders", key = "#pageable.pageNumber + '-' + #pageable.pageSize+ '-' + #pageable.sort")
     public Page<ApprovalStatusResponse> getPendingLeaders(Pageable pageable) {
 
 
