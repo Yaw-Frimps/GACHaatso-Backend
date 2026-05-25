@@ -64,6 +64,6 @@ app:
 logging:
   level:
     root: INFO
-    org.springframework.web: DEBUG
-    com.example.gacapp: DEBUG
-    org.eclipse.angus.mail: DEBUG
+    org.springframework.web: INFO
+    com.example.gacapp: INFO
+    org.eclipse.angus.mail: INFO
