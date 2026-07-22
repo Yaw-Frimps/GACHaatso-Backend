@@ -48,6 +48,7 @@ public class DataInitializer implements CommandLineRunner {
                     .email(admin.getEmail())
                     .password(passwordEncoder.encode(admin.getPassword()))
                     .role(UserRole.ADMIN)
+                    .enabled(true)
                     .approvalStatus(ApprovalStatus.APPROVED)
                     .build();
 

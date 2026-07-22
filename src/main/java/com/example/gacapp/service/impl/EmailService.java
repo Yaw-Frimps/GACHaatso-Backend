@@ -4,7 +4,6 @@ import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.MailException;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
@@ -13,6 +12,7 @@ import org.springframework.stereotype.Service;
 import org.thymeleaf.context.Context;
 import org.thymeleaf.spring6.SpringTemplateEngine;
 
+import java.time.Clock;
 import java.time.LocalDate;
 
 @Service
@@ -22,9 +22,7 @@ public class EmailService {
 
     private final JavaMailSender mailSender;
     private final SpringTemplateEngine templateEngine;
-
-    @Value("${spring.mail.password}")
-    private String mailPassword;
+    private final Clock clock;
 
     // -----------------------------
     // PASSWORD RESET EMAIL
@@ -33,7 +31,7 @@ public class EmailService {
     public void sendPasswordResetEmail(String email, String resetLink) throws MessagingException {
         sendEmail(email, "Reset Your Password - GAC Bethel Center", "reset-password", context -> {
             context.setVariable("resetLink", resetLink);
-            context.setVariable("year", LocalDate.now().getYear());
+            context.setVariable("year", LocalDate.now(clock).getYear());
         });
     }
 
@@ -41,11 +39,12 @@ public class EmailService {
     // LEADER APPROVAL EMAIL
     // -----------------------------
     @Async
-    public void sendLeaderApprovalEmail(String email, String firstName) throws MessagingException {
-        sendEmail(email, "Your Leader Account Has Been Approved", "leader-approved", context -> {
+    public void sendUserApprovalEmail(String email, String firstName, String role) throws MessagingException {
+        sendEmail(email, "Your User Account Has Been Approved", "user-approved", context -> {
             context.setVariable("firstName", firstName);
+            context.setVariable("role", role);
             context.setVariable("status", "approved");
-            context.setVariable("year", LocalDate.now().getYear());
+            context.setVariable("year", LocalDate.now(clock).getYear());
         });
     }
 
@@ -53,11 +52,12 @@ public class EmailService {
     // LEADER REJECTION EMAIL
     // -----------------------------
     @Async
-    public void sendLeaderRejectionEmail(String email, String firstName) throws MessagingException {
-        sendEmail(email, "Your Leader Account Has Been Rejected", "leader-rejected", context -> {
+    public void sendUserRejectionEmail(String email, String firstName, String role) throws MessagingException {
+        sendEmail(email, "Your User Account Has Been Rejected", "user-rejected", context -> {
             context.setVariable("firstName", firstName);
+            context.setVariable("role", role);
             context.setVariable("status", "rejected");
-            context.setVariable("year", LocalDate.now().getYear());
+            context.setVariable("year", LocalDate.now(clock).getYear());
         });
     }
 
@@ -66,8 +66,6 @@ public class EmailService {
     // -----------------------------
     private void sendEmail(String to, String subject, String templateName, EmailContextConfigurer configurer) throws MessagingException {
         log.info("Preparing email '{}' for {}", subject, to);
-
-        log.info("Mail Password {}", mailPassword); // Debugging line - remove in production
 
         try {
             // Prepare Thymeleaf context

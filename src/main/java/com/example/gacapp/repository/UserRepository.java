@@ -9,19 +9,24 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
+
+import java.util.List;
 import java.util.Optional;
 
 @Repository
 public interface UserRepository extends JpaRepository<User, String> {
     Optional<User> findByEmail(String email);
 
-    Page<User> findByRoleAndApprovalStatus(UserRole role, ApprovalStatus status, Pageable pageable);
-
-    Page<User> findByRoleAndApprovalStatusAndDeletedFalse(
-            UserRole role,
+    Page<User> findByRoleInAndApprovalStatus(
+            List<UserRole> roles,
             ApprovalStatus status,
-            Pageable pageable
-    );
+            Pageable pageable);
+
+//    Page<User> findByRoleInAndApprovalStatusAndDeletedFalse(
+//            List<UserRole> roles,
+//            ApprovalStatus status,
+//            Pageable pageable
+//    );
 
     boolean existsByEmail(@NotBlank(message = "Email cannot be empty") @Email(message = "Email should be valid") String email);
 }

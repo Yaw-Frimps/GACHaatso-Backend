@@ -10,6 +10,7 @@ import com.example.gacapp.model.User;
 import com.example.gacapp.model.UserRole;
 import com.example.gacapp.repository.UserRepository;
 import com.example.gacapp.security.JwtService;
+import com.example.gacapp.service.AuthService;
 import com.example.gacapp.service.UserService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -39,6 +40,7 @@ public class UserServiceImpl implements UserService {
     public RegisterResponse registerUser(RegisterRequest request) {
         log.info("Attempting to register user with email: {}", request.getEmail());
 
+
         if (userRepository.existsByEmail(request.getEmail())) {
             log.warn("Registration failed: Email {} already in use", request.getEmail());
             throw new EmailAlreadyExistException("Email already registered");
@@ -53,7 +55,7 @@ public class UserServiceImpl implements UserService {
             boolean enabled;
 
             // ✅ Role-based approval logic
-            if (request.getRole() == UserRole.LEADER) {
+            if (request.getRole() == UserRole.LEADER || request.getRole() == UserRole.PASTOR) {
                 approvalStatus = ApprovalStatus.PENDING;
                 enabled = false;
             } else {
@@ -149,13 +151,13 @@ public class UserServiceImpl implements UserService {
         // Defensive null handling
         ApprovalStatus status = user.getApprovalStatus();
 
-        // ADMIN & MEMBER → always allowed
-        if (user.getRole() == UserRole.ADMIN || user.getRole() == UserRole.MEMBER) {
+        // ADMIN → always allowed
+        if (user.getRole() == UserRole.ADMIN) {
             return true;
         }
 
-        // LEADER → must be approved
-        if (user.getRole() == UserRole.LEADER) {
+        // LEADER & PASTOR → must be approved
+        if (user.getRole() == UserRole.LEADER || user.getRole() == UserRole.PASTOR ) {
             return status == ApprovalStatus.APPROVED;
         }
 

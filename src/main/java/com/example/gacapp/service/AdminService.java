@@ -5,12 +5,12 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 public interface AdminService {
-    ApprovalStatusResponse approveLeader (String userId);
-    ApprovalStatusResponse rejectLeader (String userId);
+    ApprovalStatusResponse approveUser (String userId);
+    ApprovalStatusResponse rejectUser (String userId);
 
-    Page<ApprovalStatusResponse> getPendingLeaders(Pageable pageable);
+    Page<ApprovalStatusResponse> getPendingUsers(Pageable pageable);
 
-    Page<ApprovalStatusResponse> getApprovedLeaders(Pageable pageable);
+    Page<ApprovalStatusResponse> getApprovedUsers(Pageable pageable);
 
-    void deleteLeader(String userId);
+    void deleteUser(String userId);
 }

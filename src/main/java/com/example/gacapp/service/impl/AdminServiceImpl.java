@@ -17,7 +17,9 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.time.Clock;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -26,26 +28,27 @@ public class AdminServiceImpl implements AdminService {
 
     private final UserRepository userRepository;
     private final EmailService emailService;
+    private final Clock clock;
 
     @Override
-    @CacheEvict(value = {"pendingLeaders", "approvedLeaders"}, allEntries = true)
-    public ApprovalStatusResponse approveLeader(String userId) {
+    @CacheEvict(value = {"pendingApprovals", "approvedUsers"}, allEntries = true)
+    public ApprovalStatusResponse approveUser(String userId) {
         log.info("Approving leader with ID: {}", userId);
 
-        User user = getLeaderOrThrow(userId);
+        User user = getUserRequiringApprovalOrThrow(userId);
 
         if (user.getApprovalStatus() == ApprovalStatus.APPROVED) {
-            throw new ApprovalRejectionException("Leader has already been approved");
+            throw new ApprovalRejectionException(user.getRole() + " has already been approved");
         }
 
         user.setApprovalStatus(ApprovalStatus.APPROVED);
         user.setEnabled(true);
-        user.setApprovedAt(LocalDateTime.now());
+        user.setApprovedAt(LocalDateTime.now(clock));
 
         userRepository.save(user);
 
         try {
-            emailService.sendLeaderApprovalEmail(user.getEmail(), user.getFirstName());
+            emailService.sendUserApprovalEmail(user.getEmail(), user.getFirstName(), user.getRole().name());
         } catch (MessagingException e) {
             log.error("Failed to send approval email to {}: {}", user.getEmail(), e.getMessage(), e);
             // optionally continue silently; approval is already done
@@ -55,14 +58,14 @@ public class AdminServiceImpl implements AdminService {
     }
 
     @Override
-    @CacheEvict(value = {"pendingLeaders", "approvedLeaders"}, allEntries = true)
-    public ApprovalStatusResponse rejectLeader(String userId) {
+    @CacheEvict(value = {"pendingApprovals", "approvedUsers"}, allEntries = true)
+    public ApprovalStatusResponse rejectUser(String userId) {
         log.info("Rejecting leader with ID: {}", userId);
 
-        User user = getLeaderOrThrow(userId);
+        User user = getUserRequiringApprovalOrThrow(userId);
 
         if (user.getApprovalStatus() == ApprovalStatus.REJECTED) {
-            throw new ApprovalRejectionException("Leader has already been rejected");
+            throw new ApprovalRejectionException(user.getRole() + " has already been rejected");
         }
 
         user.setApprovalStatus(ApprovalStatus.REJECTED);
@@ -71,7 +74,7 @@ public class AdminServiceImpl implements AdminService {
         userRepository.save(user);
 
         try {
-            emailService.sendLeaderRejectionEmail(user.getEmail(), user.getFirstName());
+            emailService.sendUserRejectionEmail(user.getEmail(), user.getFirstName(), user.getRole().name());
         } catch (MessagingException e) {
             log.error("Failed to send rejection email to {}: {}", user.getEmail(), e.getMessage(), e);
         }
@@ -80,13 +83,13 @@ public class AdminServiceImpl implements AdminService {
     }
 
     @Override
-    @Cacheable(value = "pendingLeaders", key = "#pageable.pageNumber + '-' + #pageable.pageSize+ '-' + #pageable.sort")
-    public Page<ApprovalStatusResponse> getPendingLeaders(Pageable pageable) {
+    @Cacheable(value = "pendingApprovals", key = "#pageable.pageNumber + '-' + #pageable.pageSize+ '-' + #pageable.sort")
+    public Page<ApprovalStatusResponse> getPendingUsers(Pageable pageable) {
 
 
         return userRepository
-                .findByRoleAndApprovalStatus(
-                        UserRole.LEADER,
+                .findByRoleInAndApprovalStatus(
+                        List.of(UserRole.LEADER, UserRole.PASTOR),
                         ApprovalStatus.PENDING,
                         pageable
                 )
@@ -94,28 +97,29 @@ public class AdminServiceImpl implements AdminService {
     }
 
     @Override
-    @Cacheable(value = "approvedLeaders", key = "#pageable.pageNumber + '-' + #pageable.pageSize")
-    public Page<ApprovalStatusResponse> getApprovedLeaders(Pageable pageable) {
+    @Cacheable(value = "approvedUsers", key = "#pageable.pageNumber + '-' + #pageable.pageSize")
+    public Page<ApprovalStatusResponse> getApprovedUsers(Pageable pageable) {
 
 
-        return userRepository
-                .findByRoleAndApprovalStatus(
-                        UserRole.LEADER,
-                        ApprovalStatus.APPROVED,
-                        pageable
-                )
-                .map(this::mapToResponse);
+        return userRepository.findByRoleInAndApprovalStatus(
+                List.of(UserRole.LEADER, UserRole.PASTOR),
+                ApprovalStatus.APPROVED,
+                pageable
+        ).map(this::mapToResponse);
     }
 
     @Override
-    @CacheEvict(value = {"pendingLeaders", "approvedLeaders"}, allEntries = true)
-    public void deleteLeader(String userId) {
+    @CacheEvict(value = {"pendingApprovals", "approvedUsers"}, allEntries = true)
+    public void deleteUser(String userId) {
 
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new UserNotFoundException("User not found"));
 
-        if (user.getRole() != UserRole.LEADER) {
-            throw new ApprovalRejectionException("Only Leader accounts can be deleted");
+        if (user.getRole() != UserRole.LEADER &&
+                user.getRole() != UserRole.PASTOR) {
+
+            throw new ApprovalRejectionException(
+                    "Only Leader and Pastor accounts can be deleted");
         }
 
         user.setDeleted(true);
@@ -126,12 +130,16 @@ public class AdminServiceImpl implements AdminService {
     }
 
 
-    private User getLeaderOrThrow(String userId) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+    private User getUserRequiringApprovalOrThrow(String userId) {
 
-        if (user.getRole() != UserRole.LEADER) {
-            throw new ApprovalRejectionException("Only leaders require approval");
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UserNotFoundException("User not found"));
+
+        if (user.getRole() != UserRole.LEADER &&
+                user.getRole() != UserRole.PASTOR) {
+
+            throw new ApprovalRejectionException(
+                    "Only leaders and pastors require approval");
         }
 
         return user;

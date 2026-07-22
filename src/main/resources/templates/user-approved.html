@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Leader Rejection</title>
+    <title>Leader Approval</title>
 </head>
 <body style="margin:0; padding:0; background-color:#e8edf2; font-family: Arial, sans-serif;">
 <main style="background-color:#e8edf2; padding:20px;">
@@ -20,13 +20,13 @@
         <tbody>
         <tr>
             <td style="padding:40px 30px; color:#1f2937; line-height: 1.6;">
-                <h2 style="margin-top:0; color:#050d3d; font-size: 20px;">Leader Account Rejected</h2>
+                <h2 style="margin-top:0; color:#050d3d; font-size: 20px;">User Account Approved</h2>
 
                 <p>Dear <span th:text="${firstName}">User</span>,</p>
 
-                <p>We regret to inform you that your request to become a leader has been <b>rejected</b> by the admin.</p>
+                <p>Congratulations! Your request to become a <span th:text="${role}">User</span> has been <b>approved</b> by the admin.</p>
 
-                <p>If you need more information, please contact the admin.</p>
+                <p>You can now log in and start using your privileges.</p>
 
                 <p style="margin-top:25px; font-size:14px; color: #1f2937;">Thank you!</p>
             </td>

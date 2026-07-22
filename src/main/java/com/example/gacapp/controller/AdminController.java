@@ -45,7 +45,7 @@ public class AdminController {
             @RequestParam(defaultValue = "10") int size
     ) {
         Pageable pageable = PageRequest.of(page, size);
-        Page<ApprovalStatusResponse> pendingLeaders = adminService.getPendingLeaders(pageable);
+        Page<ApprovalStatusResponse> pendingLeaders = adminService.getPendingUsers(pageable);
         return ResponseEntity.ok(ApiResponse.success(pendingLeaders, "Pending leaders fetched successfully"));
     }
 
@@ -66,7 +66,7 @@ public class AdminController {
             @RequestParam(defaultValue = "10") int size
     ) {
         Pageable pageable = PageRequest.of(page, size);
-        Page<ApprovalStatusResponse> approvedLeaders = adminService.getApprovedLeaders(pageable);
+        Page<ApprovalStatusResponse> approvedLeaders = adminService.getApprovedUsers(pageable);
         return ResponseEntity.ok(ApiResponse.success(approvedLeaders, "Approved leaders fetched successfully"));
     }
 
@@ -84,7 +84,7 @@ public class AdminController {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "500", description = "Internal server error")
     })
     public ResponseEntity<ApiResponse<ApprovalStatusResponse>> approveLeader(@PathVariable String userId){
-        ApprovalStatusResponse response = adminService.approveLeader(userId);
+        ApprovalStatusResponse response = adminService.approveUser(userId);
         return ResponseEntity.ok(ApiResponse.success(response, "Leader approved successfully"));
     }
 
@@ -102,7 +102,7 @@ public class AdminController {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "500", description = "Internal server error")
     })
     public ResponseEntity<ApiResponse<ApprovalStatusResponse>> rejectLeader(@PathVariable String userId){
-        ApprovalStatusResponse response = adminService.rejectLeader(userId);
+        ApprovalStatusResponse response = adminService.rejectUser(userId);
         return ResponseEntity.ok(ApiResponse.success(response, "Leader rejected successfully"));
     }
 
@@ -119,7 +119,7 @@ public class AdminController {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "500", description = "Internal server error")
     })
     public ResponseEntity<ApiResponse<Void>> deleteLeader(@PathVariable String userId){
-        adminService.deleteLeader(userId);
+        adminService.deleteUser(userId);
         return ResponseEntity.ok(
                 ApiResponse.success(null, "Leader's account deleted successfully")
         );

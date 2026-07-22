@@ -31,29 +31,46 @@ public class Members {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private String id;
+
     @Column(nullable = false)
     private String firstName;
+
     private String lastName;
+
     private LocalDate dateOfBirth;
+
     @Size(max = 10)
     private String gender;
+
     @Column(unique = true)
     @Pattern(regexp = PHONE_REGEX, message = "Invalid phone number")
     @NotBlank(message = "Phone number is required")
     private String phoneNumber;
+
     @Column(unique = true)
     @Email(message = "Email should be valid")
     private String email;
+
     private String maritalStatus;
+
     @Column(columnDefinition = "TEXT")
     private String residenceAddress;
+
     private String occupation;
+
     @Pattern(regexp = PHONE_REGEX, message = "Invalid phone number")
     private String emergencyNumber;
+
     @Column(length = 1000, name = "image_url")
     private String imageUrl;
+
+    @ManyToOne
+    @JoinColumn(name = "leader_id", nullable = false)
+    private User leader;
+
     @CreatedDate
     private LocalDateTime createdAt;
+
     @LastModifiedDate
     private LocalDateTime updatedAt;
 
