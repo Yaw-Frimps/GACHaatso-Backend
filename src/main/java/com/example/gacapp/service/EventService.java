@@ -10,8 +10,8 @@ import org.springframework.web.multipart.MultipartFile;
 @Service
 public interface EventService {
     EventResponse createEvent(EventRequest request, MultipartFile file);
-    EventResponse getEventById(String eventId);
-    Page<EventResponse> getAllEvent(Pageable pageable);
+    EventResponse getEvent(String eventId);
+    Page<EventResponse> getEvents(Pageable pageable);
     EventResponse updateEvent(String eventId, EventRequest request, MultipartFile file);
     void deleteEvent(String eventId);
 }

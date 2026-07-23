@@ -32,7 +32,6 @@ public class EventController {
     private final ObjectMapper objectMapper;
 
     @PostMapping(
-            value = "/create-event",
             consumes = MediaType.MULTIPART_FORM_DATA_VALUE
     )
     @PreAuthorize("hasRole('ADMIN')")
@@ -72,7 +71,7 @@ public class EventController {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "Invalid request payload"),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "500", description = "Internal server error")
     })
-    public ResponseEntity<ApiResponse<Page<EventResponse>>> getAllEvents(
+    public ResponseEntity<ApiResponse<Page<EventResponse>>> getEvents(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size
     ) {
@@ -80,7 +79,7 @@ public class EventController {
         Pageable pageable = PageRequest.of(page, size);
 
         Page<EventResponse> response =
-                eventService.getAllEvent(pageable);
+                eventService.getEvents(pageable);
 
         return ResponseEntity.ok(
                 ApiResponse.success(response, "Events retrieved successfully")
@@ -97,12 +96,12 @@ public class EventController {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "Invalid request payload"),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "500", description = "Internal server error")
     })
-    public ResponseEntity<ApiResponse<EventResponse>> getEventById(
+    public ResponseEntity<ApiResponse<EventResponse>> getEvent(
             @PathVariable String eventId
     ) {
 
         EventResponse response =
-                eventService.getEventById(eventId);
+                eventService.getEvent(eventId);
 
         return ResponseEntity.ok(
                 ApiResponse.success(response, "Event retrieved successfully")
@@ -110,7 +109,7 @@ public class EventController {
     }
 
     @PatchMapping(
-            value = "/update-event/{eventId}",
+            value = "/{eventId}",
             consumes = MediaType.MULTIPART_FORM_DATA_VALUE
     )
     @PreAuthorize("hasRole('ADMIN')")
@@ -156,6 +155,8 @@ public class EventController {
     public ResponseEntity<ApiResponse<Void>> deleteEvent(
             @PathVariable String eventId
     ) {
+
+
 
         eventService.deleteEvent(eventId);
 

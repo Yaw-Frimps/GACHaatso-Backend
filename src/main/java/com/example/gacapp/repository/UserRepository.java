@@ -29,4 +29,6 @@ public interface UserRepository extends JpaRepository<User, String> {
     );
 
     boolean existsByEmail(@NotBlank(message = "Email cannot be empty") @Email(message = "Email should be valid") String email);
+
+    Optional<User> findFirstByRoleAndEnabledTrue(UserRole role);
 }

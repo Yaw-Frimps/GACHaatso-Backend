@@ -42,7 +42,8 @@ public class ContactMessageServiceImpl implements ContactMessageService {
     @Cacheable(value = "messages", key = "#pageable.pageNumber + '-' + #pageable.pageSize")
     public Page<ContactMessageResponse> getAllMessages(Pageable pageable) {
         log.info("Retrieving paginated contact messages");
-        return contactMessageRepository.findAll(pageable)
+        return contactMessageRepository
+                .findAll(pageable)
                 .map(this::mapToResponse);
     }
 

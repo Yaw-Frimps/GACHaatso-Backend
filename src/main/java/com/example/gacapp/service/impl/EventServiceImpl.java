@@ -57,9 +57,6 @@ public class EventServiceImpl implements EventService {
                     storedFileName
             );
 
-//            String imagePath = "/uploads/" + EVENT + "/" + savedEvent.getId() + "/" + storedFileName;
-
-//            savedEvent.setImageUrl(imagePath);
 
             savedEvent.setImageUrl(imageUrl);
 
@@ -121,7 +118,7 @@ public class EventServiceImpl implements EventService {
 
     @Override
     @Cacheable(value = "events", key = "#eventId")
-    public EventResponse getEventById(String eventId) {
+    public EventResponse getEvent(String eventId) {
 
         return eventRepository.findById(eventId)
                 .map(this::mapToResponse)
@@ -133,7 +130,7 @@ public class EventServiceImpl implements EventService {
     @Override
     @Cacheable(value = "events",
             key = "#pageable.pageNumber + '-' + #pageable.pageSize + '-' + #pageable.sort")
-    public Page<EventResponse> getAllEvent(Pageable pageable) {
+    public Page<EventResponse> getEvents(Pageable pageable) {
         return eventRepository.findAll(pageable).map(this::mapToResponse);
     }
 
@@ -146,6 +143,11 @@ public class EventServiceImpl implements EventService {
                 .orElseThrow(() ->
                         new EventNotFoundException(EVENT_NOT_FOUND_WITH_ID + eventId)
                 );
+
+        fileStorageService.deleteFileDirectory(
+                EVENT,
+                event.getId()
+        );
 
         eventRepository.delete(event);
     }
