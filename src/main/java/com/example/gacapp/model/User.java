@@ -17,8 +17,10 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 
 @Data
 @Table(name = "users", indexes = {
@@ -36,22 +38,31 @@ public class User implements UserDetails {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private String id;
+
     @NotBlank(message = "Name cannot be empty")
     private String firstName;
+
     @NotBlank(message = "Name cannot be empty")
     private String lastName;
+
     @NotBlank(message = "Email cannot be empty")
     @Email(message = "Email should be valid")
     @Column(unique = true, nullable = false)
     private String email;
+
     @NotBlank(message = "Password cannot be empty")
     @Size(min = 6, message = "Password must be at least 6 characters long")
     private String password;
+
     @Enumerated(EnumType.STRING)
     private UserRole role;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private ApprovalStatus approvalStatus;
+
+    @OneToMany(mappedBy = "leader", fetch = FetchType.LAZY)
+    private List<Members> members = new ArrayList<>();
 
     @Builder.Default
     @Column(nullable = false)

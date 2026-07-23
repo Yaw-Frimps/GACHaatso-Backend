@@ -64,9 +64,16 @@ public class Members {
     @Column(length = 1000, name = "image_url")
     private String imageUrl;
 
-    @ManyToOne
-    @JoinColumn(name = "leader_id", nullable = false)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "leader_id")
     private User leader;
+
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "assigned_by")
+    private User assignedBy;
+
+    private LocalDateTime assignedAt;
 
     @CreatedDate
     private LocalDateTime createdAt;

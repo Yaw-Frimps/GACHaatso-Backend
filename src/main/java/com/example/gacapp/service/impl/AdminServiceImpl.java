@@ -1,13 +1,20 @@
 package com.example.gacapp.service.impl;
 
 import com.example.gacapp.dto.response.ApprovalStatusResponse;
+import com.example.gacapp.dto.response.MembersResponse;
+import com.example.gacapp.dto.response.UserResponse;
 import com.example.gacapp.exception.ApprovalRejectionException;
+import com.example.gacapp.exception.MemberNotFoundException;
 import com.example.gacapp.exception.UserNotFoundException;
 import com.example.gacapp.model.ApprovalStatus;
+import com.example.gacapp.model.Members;
 import com.example.gacapp.model.User;
 import com.example.gacapp.model.UserRole;
+import com.example.gacapp.repository.MemberRepository;
 import com.example.gacapp.repository.UserRepository;
 import com.example.gacapp.service.AdminService;
+import com.example.gacapp.util.MemberMapper;
+import com.example.gacapp.util.UserMapper;
 import jakarta.mail.MessagingException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -15,7 +22,10 @@ import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Clock;
 import java.time.LocalDateTime;
@@ -27,6 +37,9 @@ import java.util.List;
 public class AdminServiceImpl implements AdminService {
 
     private final UserRepository userRepository;
+    private final MemberRepository membersRepository;
+    private final MemberMapper memberMapper;
+    private final UserMapper userMapper;
     private final EmailService emailService;
     private final Clock clock;
 
@@ -127,6 +140,86 @@ public class AdminServiceImpl implements AdminService {
         user.setApprovalStatus(ApprovalStatus.REJECTED);
 
         userRepository.save(user);
+    }
+
+    @Override
+    @Transactional
+    public void assignMemberToLeader(String memberId, String leaderId) {
+
+        Members member = membersRepository.findById(memberId)
+                .orElseThrow(() -> new MemberNotFoundException("Member not found"));
+
+        User leader = userRepository.findById(leaderId)
+                .orElseThrow(() -> new UserNotFoundException("Leader not found"));
+
+        if (leader.getRole() != UserRole.LEADER) {
+            throw new IllegalArgumentException("Selected user is not a leader.");
+        }
+
+        if (leader.getApprovalStatus() != ApprovalStatus.APPROVED) {
+            throw new IllegalArgumentException("Leader has not been approved.");
+        }
+
+        if (!leader.isEnabled()) {
+            throw new IllegalArgumentException("Leader account is disabled.");
+        }
+
+        Authentication authentication =
+                SecurityContextHolder.getContext().getAuthentication();
+
+        User currentAdmin = userRepository.findByEmail(
+                authentication.getName()
+        ).orElseThrow(() ->
+                new UserNotFoundException("Admin not found")
+        );
+
+        member.setLeader(leader);
+        member.setAssignedBy(currentAdmin);
+        member.setAssignedAt(LocalDateTime.now(clock));
+
+        membersRepository.save(member);
+    }
+
+    @Override
+    public Page<MembersResponse> getLeaderMembers(
+            String leaderId,
+            Pageable pageable
+    ) {
+
+
+        return membersRepository
+                .findByLeaderId(
+                        leaderId,
+                        pageable
+                )
+                .map(memberMapper::toDTO);
+
+    }
+
+    @Override
+    public Page<MembersResponse> getUnassignedMembers(
+            Pageable pageable
+    ) {
+
+        return membersRepository
+                .findByLeaderIsNull(pageable)
+                .map(memberMapper::toDTO);
+
+    }
+
+    @Override
+    public Page<UserResponse> getAvailableLeaders(
+            Pageable pageable
+    ) {
+
+        return userRepository
+                .findByRoleAndApprovalStatusAndEnabledTrue(
+                        UserRole.LEADER,
+                        ApprovalStatus.APPROVED,
+                        pageable
+                )
+                .map(userMapper::toDTO);
+
     }
 
 

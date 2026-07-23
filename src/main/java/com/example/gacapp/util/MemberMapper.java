@@ -42,6 +42,7 @@ public class MemberMapper {
                 .maritalStatus(member.getMaritalStatus())
                 .residenceAddress(member.getResidenceAddress())
                 .occupation(member.getOccupation())
+                .leader(member.getLeader() != null ? new LeaderMapper().toDTO(member.getLeader()) : null)
                 .emergencyNumber(member.getEmergencyNumber())
                 .imageUrl(member.getImageUrl()) // already FULL URL from service
                 .createdAt(member.getCreatedAt())

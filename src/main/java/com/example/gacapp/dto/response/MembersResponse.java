@@ -26,6 +26,8 @@ public class MembersResponse {
     private String occupation;
     private String emergencyNumber;
 
+    private LeaderResponse leader;
+
     private String imageUrl;
 
     private LocalDateTime createdAt;

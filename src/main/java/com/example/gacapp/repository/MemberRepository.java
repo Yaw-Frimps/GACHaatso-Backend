@@ -10,4 +10,12 @@ import org.springframework.stereotype.Repository;
 public interface MemberRepository extends JpaRepository<Members, String> {
 
     Page<Members> findByLeaderId(String leaderId, Pageable pageable);
+
+
+    Page<Members> findByLeaderIsNull(
+            Pageable pageable
+    );
+
+
+    boolean existsByLeaderId(String leaderId);
 }

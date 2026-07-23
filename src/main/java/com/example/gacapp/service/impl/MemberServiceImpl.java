@@ -1,6 +1,7 @@
 package com.example.gacapp.service.impl;
 
 import com.example.gacapp.dto.request.MembersRequest;
+import com.example.gacapp.dto.request.UpdateMemberRequest;
 import com.example.gacapp.dto.response.MembersResponse;
 import com.example.gacapp.exception.ResourceNotFoundException;
 import com.example.gacapp.model.ApprovalStatus;
@@ -20,6 +21,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 @Slf4j
@@ -39,6 +41,7 @@ public class MemberServiceImpl implements MemberService {
 
     @Override
     @CacheEvict(value = "members_all", allEntries = true)
+    @Transactional
     public MembersResponse createMember(MembersRequest request, MultipartFile file) {
 
         User user = authService.getLoggedInUser();
@@ -47,7 +50,6 @@ public class MemberServiceImpl implements MemberService {
         log.info("Creating new member with email: {}", request.getEmail());
 
         Members member = memberMapper.toEntity(request);
-        member.setLeader(user);
 
         Members savedMember = repository.save(member);
 
@@ -66,7 +68,7 @@ public class MemberServiceImpl implements MemberService {
             );
 
             savedMember.setImageUrl(imageUrl);
-            savedMember = repository.save(savedMember);
+            repository.save(savedMember);
         }
 
         return memberMapper.toDTO(savedMember);
@@ -112,7 +114,8 @@ public class MemberServiceImpl implements MemberService {
 
     @Override
     @CacheEvict(value = {"members_all", "members"}, allEntries = true)
-    public MembersResponse updateMember(String id, MembersRequest request, MultipartFile file) {
+    @Transactional
+    public MembersResponse updateMember(String id, UpdateMemberRequest request, MultipartFile file) {
 
         Members existing = repository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException(MEMBER_NOT_FOUND + id));
@@ -164,6 +167,7 @@ public class MemberServiceImpl implements MemberService {
 
     @Override
     @CacheEvict(value = {"members_all", "members"}, allEntries = true)
+    @Transactional
     public void deleteMember(String id) {
 
         log.warn("Deleting member with id={}", id);
@@ -174,14 +178,17 @@ public class MemberServiceImpl implements MemberService {
         User user = authService.getLoggedInUser();
         validateMemberAccess(user, member, "delete");
 
+
+        repository.delete(member);
+
         if (member.getImageUrl() != null) {
             fileStorageService.deleteFileDirectory(MEMBERS, member.getId());
         }
 
-        repository.delete(member);
-
         log.info("Member deleted successfully id={}", id);
     }
+
+
 
     // ================= SECURITY HELPERS =================
 

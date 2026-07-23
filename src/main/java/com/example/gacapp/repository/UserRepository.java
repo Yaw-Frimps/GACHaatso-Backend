@@ -22,11 +22,11 @@ public interface UserRepository extends JpaRepository<User, String> {
             ApprovalStatus status,
             Pageable pageable);
 
-//    Page<User> findByRoleInAndApprovalStatusAndDeletedFalse(
-//            List<UserRole> roles,
-//            ApprovalStatus status,
-//            Pageable pageable
-//    );
+    Page<User> findByRoleAndApprovalStatusAndEnabledTrue(
+            UserRole role,
+            ApprovalStatus approvalStatus,
+            Pageable pageable
+    );
 
     boolean existsByEmail(@NotBlank(message = "Email cannot be empty") @Email(message = "Email should be valid") String email);
 }
