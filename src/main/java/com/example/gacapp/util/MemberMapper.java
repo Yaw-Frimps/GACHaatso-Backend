@@ -6,12 +6,21 @@ import com.example.gacapp.model.Members;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
+
 @Component
 @RequiredArgsConstructor
 public class MemberMapper {
 
+
+    private final LeaderMapper leaderMapper;
+
+
+
     public Members toEntity(MembersRequest request) {
-        if (request == null) return null;
+
+        if(request == null)
+            return null;
+
 
         return Members.builder()
                 .firstName(request.getFirstName())
@@ -27,8 +36,15 @@ public class MemberMapper {
                 .build();
     }
 
-    public MembersResponse toDTO(Members member) {
-        if (member == null) return null;
+
+
+
+    public MembersResponse toDTO(Members member){
+
+        if(member == null)
+            return null;
+
+
 
         return MembersResponse.builder()
                 .id(member.getId())
@@ -42,9 +58,14 @@ public class MemberMapper {
                 .maritalStatus(member.getMaritalStatus())
                 .residenceAddress(member.getResidenceAddress())
                 .occupation(member.getOccupation())
-                .leader(member.getLeader() != null ? new LeaderMapper().toDTO(member.getLeader()) : null)
+
+                // SAFE LEADER MAPPING
+                .leader(
+                        leaderMapper.toDTO(member.getLeader())
+                )
+
                 .emergencyNumber(member.getEmergencyNumber())
-                .imageUrl(member.getImageUrl()) // already FULL URL from service
+                .profileImageUrl(member.getProfileImageUrl())
                 .createdAt(member.getCreatedAt())
                 .updatedAt(member.getUpdatedAt())
                 .build();

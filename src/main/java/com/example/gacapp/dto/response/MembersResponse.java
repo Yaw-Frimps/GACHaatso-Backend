@@ -28,7 +28,7 @@ public class MembersResponse {
 
     private LeaderResponse leader;
 
-    private String imageUrl;
+    private String profileImageUrl;
 
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;

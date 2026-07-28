@@ -122,24 +122,58 @@ public class AdminServiceImpl implements AdminService {
     }
 
     @Override
-    @CacheEvict(value = {"pendingApprovals", "approvedUsers"}, allEntries = true)
+    @Transactional
+    @CacheEvict(
+            value = {"pendingApprovals", "approvedUsers"},
+            allEntries = true
+    )
     public void deleteUser(String userId) {
 
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new UserNotFoundException("User not found"));
 
-        if (user.getRole() != UserRole.LEADER &&
-                user.getRole() != UserRole.PASTOR) {
+        User user =
+                userRepository.findById(userId)
+                        .orElseThrow(() ->
+                                new UserNotFoundException(
+                                        "User not found"
+                                )
+                        );
+
+
+
+        if(user.getRole() != UserRole.LEADER &&
+                user.getRole() != UserRole.PASTOR){
+
 
             throw new ApprovalRejectionException(
-                    "Only Leader and Pastor accounts can be deleted");
+                    "Only Leader and Pastor accounts can be deleted"
+            );
+
         }
+
+
+
+    /*
+       Remove leader assignment first
+    */
+        if(user.getRole() == UserRole.LEADER){
+
+            membersRepository.removeLeaderFromMembers(
+                    user.getId()
+            );
+
+        }
+
+
 
         user.setDeleted(true);
         user.setEnabled(false);
-        user.setApprovalStatus(ApprovalStatus.REJECTED);
+        user.setApprovalStatus(
+                ApprovalStatus.REJECTED
+        );
+
 
         userRepository.save(user);
+
     }
 
     @Override

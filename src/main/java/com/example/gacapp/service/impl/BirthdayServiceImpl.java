@@ -118,7 +118,7 @@ public class BirthdayServiceImpl
                 .dateOfBirth(member.getDateOfBirth())
                 .age(member.getAge())
                 .phoneNumber(member.getPhoneNumber())
-                .imageUrl(member.getImageUrl())
+                .imageUrl(member.getProfileImageUrl())
                 .build();
 
     }

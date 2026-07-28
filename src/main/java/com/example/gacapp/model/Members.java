@@ -61,11 +61,19 @@ public class Members {
     @Pattern(regexp = PHONE_REGEX, message = "Invalid phone number")
     private String emergencyNumber;
 
-    @Column(length = 1000, name = "image_url")
-    private String imageUrl;
+    @Column(length = 1000, name = "profile_image_url")
+    private String profileImageUrl;
+
+    @Column(name = "profile_image_public_id")
+    private String profileImagePublicId;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "leader_id")
+    @JoinColumn(
+            name = "leader_id",
+            foreignKey = @ForeignKey(
+                    name = "fk_member_leader"
+            )
+    )
     private User leader;
 
 
