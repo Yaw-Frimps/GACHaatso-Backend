@@ -1,12 +1,14 @@
 package com.example.gacapp.service.impl;
 
 import com.example.gacapp.dto.request.EventRequest;
+import com.example.gacapp.dto.response.CloudinaryResponse;
 import com.example.gacapp.dto.response.EventResponse;
 import com.example.gacapp.exception.EventNotFoundException;
 import com.example.gacapp.model.Event;
 import com.example.gacapp.repository.EventRepository;
 import com.example.gacapp.service.EventService;
-import com.example.gacapp.util.FileStorageServiceImpl;
+import com.example.gacapp.service.CloudinaryService;
+import com.example.gacapp.model.ImageFolder;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheEvict;
@@ -17,21 +19,31 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+
 @Service
 @RequiredArgsConstructor
 @Slf4j
 public class EventServiceImpl implements EventService {
 
-    private final EventRepository eventRepository;
-    private final FileStorageServiceImpl fileStorageService;
 
-    private static final String EVENT = "events";
-    private static final String EVENT_NOT_FOUND_WITH_ID = "Event not found with id: ";
+    private final EventRepository eventRepository;
+
+    private final CloudinaryService cloudinaryService;
+
+
+    private static final String EVENT_NOT_FOUND_WITH_ID =
+            "Event not found with id: ";
+
+
 
     @Transactional
     @Override
     @CacheEvict(value = "events", allEntries = true)
-    public EventResponse createEvent(EventRequest request, MultipartFile file) {
+    public EventResponse createEvent(
+            EventRequest request,
+            MultipartFile file
+    ) {
+
 
         Event event = Event.builder()
                 .title(request.getTitle())
@@ -40,31 +52,45 @@ public class EventServiceImpl implements EventService {
                 .date(request.getDate())
                 .build();
 
+
+
         Event savedEvent = eventRepository.save(event);
 
-        if (file != null && !file.isEmpty()) {
 
-            String storedFileName = fileStorageService.storeFile(
-                    file,
-                    EVENT,
-                    savedEvent.getId(),
-                    null
+
+        if(file != null && !file.isEmpty()) {
+
+
+            CloudinaryResponse response =
+                    cloudinaryService.upload(
+                            file,
+                            ImageFolder.EVENTS,
+                            savedEvent.getId()
+                    );
+
+
+
+            savedEvent.setImageUrl(
+                    response.getImageUrl()
             );
 
-            String imageUrl = fileStorageService.getFileUrl(
-                    EVENT,
-                    savedEvent.getId(),
-                    storedFileName
+
+            savedEvent.setImagePublicId(
+                    response.getPublicId()
             );
 
-
-            savedEvent.setImageUrl(imageUrl);
 
             savedEvent = eventRepository.save(savedEvent);
+
         }
+
 
         return mapToResponse(savedEvent);
     }
+
+
+
+
 
     @Transactional
     @Override
@@ -75,93 +101,190 @@ public class EventServiceImpl implements EventService {
             MultipartFile file
     ) {
 
-        Event event = eventRepository.findById(eventId)
-                .orElseThrow(() ->
-                        new EventNotFoundException(EVENT_NOT_FOUND_WITH_ID + eventId)
+
+        Event event =
+                eventRepository.findById(eventId)
+                        .orElseThrow(() ->
+                                new EventNotFoundException(
+                                        EVENT_NOT_FOUND_WITH_ID + eventId
+                                )
+                        );
+
+
+
+        if(request.getTitle() != null)
+            event.setTitle(request.getTitle());
+
+
+        if(request.getDescription() != null)
+            event.setDescription(request.getDescription());
+
+
+        if(request.getLocation() != null)
+            event.setLocation(request.getLocation());
+
+
+        if(request.getDate() != null)
+            event.setDate(request.getDate());
+
+
+
+
+        if(file != null && !file.isEmpty()) {
+
+
+
+            // Delete old image from Cloudinary
+
+            if(event.getImagePublicId() != null){
+
+                cloudinaryService.delete(
+                        event.getImagePublicId()
                 );
 
-        if (request.getTitle() != null) event.setTitle(request.getTitle());
-        if (request.getDescription() != null) event.setDescription(request.getDescription());
-        if (request.getLocation() != null) event.setLocation(request.getLocation());
-        if (request.getDate() != null) event.setDate(request.getDate());
-
-        if (file != null && !file.isEmpty()) {
-
-            // ✅ FIX: extract filename from URL safely
-            String oldFileName = null;
-
-            if (event.getImageUrl() != null) {
-                oldFileName = event.getImageUrl()
-                        .substring(event.getImageUrl().lastIndexOf("/") + 1);
             }
 
-            String storedFileName = fileStorageService.storeFile(
-                    file,
-                    EVENT,
-                    event.getId(),
-                    oldFileName
+
+
+
+            CloudinaryResponse response =
+                    cloudinaryService.upload(
+                            file,
+                            ImageFolder.EVENTS,
+                            event.getId()
+                    );
+
+
+
+            event.setImageUrl(
+                    response.getImageUrl()
             );
 
-            String imageUrl = fileStorageService.getFileUrl(
-                    EVENT,
-                    event.getId(),
-                    storedFileName
+
+            event.setImagePublicId(
+                    response.getPublicId()
             );
 
-            event.setImageUrl(imageUrl);
         }
 
-        Event updatedEvent = eventRepository.save(event);
+
+
+        Event updatedEvent =
+                eventRepository.save(event);
+
+
 
         return mapToResponse(updatedEvent);
+
     }
+
+
+
+
 
     @Override
     @Cacheable(value = "events", key = "#eventId")
     public EventResponse getEvent(String eventId) {
 
+
         return eventRepository.findById(eventId)
+
                 .map(this::mapToResponse)
+
                 .orElseThrow(() ->
-                        new EventNotFoundException(EVENT_NOT_FOUND_WITH_ID + eventId)
+                        new EventNotFoundException(
+                                EVENT_NOT_FOUND_WITH_ID + eventId
+                        )
                 );
+
     }
 
+
+
+
+
     @Override
-    @Cacheable(value = "events",
-            key = "#pageable.pageNumber + '-' + #pageable.pageSize + '-' + #pageable.sort")
+    @Cacheable(
+            value = "events",
+            key = "#pageable.pageNumber + '-' + #pageable.pageSize + '-' + #pageable.sort"
+    )
     public Page<EventResponse> getEvents(Pageable pageable) {
-        return eventRepository.findAll(pageable).map(this::mapToResponse);
+
+
+        return eventRepository.findAll(pageable)
+                .map(this::mapToResponse);
+
     }
+
+
+
+
+
 
     @Transactional
     @Override
     @CacheEvict(value = "events", allEntries = true)
     public void deleteEvent(String eventId) {
 
-        Event event = eventRepository.findById(eventId)
-                .orElseThrow(() ->
-                        new EventNotFoundException(EVENT_NOT_FOUND_WITH_ID + eventId)
-                );
 
-        fileStorageService.deleteFileDirectory(
-                EVENT,
-                event.getId()
-        );
+
+        Event event =
+                eventRepository.findById(eventId)
+
+                        .orElseThrow(() ->
+                                new EventNotFoundException(
+                                        EVENT_NOT_FOUND_WITH_ID + eventId
+                                )
+                        );
+
+
+
+
+        // Remove image from Cloudinary
+
+        if(event.getImagePublicId() != null){
+
+            cloudinaryService.delete(
+                    event.getImagePublicId()
+            );
+
+        }
+
+
+
 
         eventRepository.delete(event);
+
     }
 
+
+
+
+
+
     private EventResponse mapToResponse(Event event) {
+
+
         return EventResponse.builder()
+
                 .id(event.getId())
+
                 .title(event.getTitle())
+
                 .description(event.getDescription())
+
                 .location(event.getLocation())
+
                 .date(event.getDate())
+
                 .imageUrl(event.getImageUrl())
+
                 .createdAt(event.getCreatedAt())
+
                 .updatedAt(event.getUpdatedAt())
+
                 .build();
+
     }
+
 }

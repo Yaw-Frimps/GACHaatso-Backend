@@ -38,6 +38,9 @@ public class Event {
     @Column(name = "image_url", length = 1000)
     private String imageUrl;
 
+    @Column(name = "image_public_id")
+    private String imagePublicId;
+
     @CreatedDate
     private LocalDateTime createdAt;
 

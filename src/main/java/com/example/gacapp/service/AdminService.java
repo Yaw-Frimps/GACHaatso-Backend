@@ -16,7 +16,7 @@ public interface AdminService {
 
     void deleteUser(String userId);
 
-    void assignMemberToLeader(String memberId, String leaderId);
+    MembersResponse assignMemberToLeader(String memberId, String leaderId);
 
     Page<MembersResponse> getLeaderMembers(
             String leaderId,

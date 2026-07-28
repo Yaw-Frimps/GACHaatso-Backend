@@ -144,7 +144,7 @@ public class AdminServiceImpl implements AdminService {
 
     @Override
     @Transactional
-    public void assignMemberToLeader(String memberId, String leaderId) {
+    public MembersResponse assignMemberToLeader(String memberId, String leaderId) {
 
         Members member = membersRepository.findById(memberId)
                 .orElseThrow(() -> new MemberNotFoundException("Member not found"));
@@ -178,6 +178,7 @@ public class AdminServiceImpl implements AdminService {
         member.setAssignedAt(LocalDateTime.now(clock));
 
         membersRepository.save(member);
+        return memberMapper.toDTO(member);
     }
 
     @Override

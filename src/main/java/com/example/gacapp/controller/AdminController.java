@@ -141,14 +141,14 @@ public class AdminController {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "Member or Leader not found"),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "500", description = "Internal server error")
     })
-    public ResponseEntity<ApiResponse<Void>> assignLeaderToMember(
+    public ResponseEntity<ApiResponse<MembersResponse>> assignLeaderToMember(
             @PathVariable String memberId,
             @PathVariable String leaderId
     ) {
-        adminService.assignMemberToLeader(memberId, leaderId);
+        MembersResponse response = adminService.assignMemberToLeader(memberId, leaderId);
 
         return ResponseEntity.ok(
-                ApiResponse.success(null, "Leader assigned to member successfully")
+                ApiResponse.success(response, "Leader assigned to member successfully")
         );
     }
 
