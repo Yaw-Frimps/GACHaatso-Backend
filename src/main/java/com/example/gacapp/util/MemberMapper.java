@@ -4,6 +4,7 @@ import com.example.gacapp.dto.request.MembersRequest;
 import com.example.gacapp.dto.response.MembersResponse;
 import com.example.gacapp.model.Members;
 import lombok.RequiredArgsConstructor;
+import org.hibernate.Hibernate;
 import org.springframework.stereotype.Component;
 
 
@@ -61,7 +62,9 @@ public class MemberMapper {
 
                 // SAFE LEADER MAPPING
                 .leader(
-                        leaderMapper.toDTO(member.getLeader())
+                        Hibernate.isInitialized(member.getLeader())
+                                ? leaderMapper.toDTO(member.getLeader())
+                                : null
                 )
 
                 .emergencyNumber(member.getEmergencyNumber())
