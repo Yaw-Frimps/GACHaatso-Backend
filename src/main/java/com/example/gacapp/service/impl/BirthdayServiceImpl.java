@@ -30,7 +30,7 @@ public class BirthdayServiceImpl
     private final MemberRepository membersRepository;
 
     private final NotificationService notificationService;
-    private Clock clock;
+    private final Clock clock;
 
 
 
