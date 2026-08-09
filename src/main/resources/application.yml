@@ -63,7 +63,10 @@ app:
 logging:
   level:
     root: INFO
-    org.springframework.web: INFO
+    org.springframework.web: DEBUG
+    org.springframework.security: DEBUG
+    org.springframework.security.web.FilterChainProxy: DEBUG
+    com.example.gacapp.security: DEBUG
     com.example.gacapp: INFO
     org.eclipse.angus.mail: INFO
 
@@ -72,3 +75,7 @@ cloudinary:
   cloud-name: ${CLOUDINARY_CLOUD_NAME}
   api-key: ${CLOUDINARY_API_KEY}
   api-secret: ${CLOUDINARY_API_SECRET}
+
+meeting:
+  generation:
+    days: 90
