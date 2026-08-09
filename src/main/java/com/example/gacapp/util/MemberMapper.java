@@ -4,7 +4,6 @@ import com.example.gacapp.dto.request.MembersRequest;
 import com.example.gacapp.dto.response.MembersResponse;
 import com.example.gacapp.model.Members;
 import lombok.RequiredArgsConstructor;
-import org.hibernate.Hibernate;
 import org.springframework.stereotype.Component;
 
 
@@ -12,16 +11,13 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class MemberMapper {
 
-
     private final LeaderMapper leaderMapper;
-
-
 
     public Members toEntity(MembersRequest request) {
 
-        if(request == null)
+        if (request == null) {
             return null;
-
+        }
 
         return Members.builder()
                 .firstName(request.getFirstName())
@@ -37,15 +33,11 @@ public class MemberMapper {
                 .build();
     }
 
+    public MembersResponse toDTO(Members member) {
 
-
-
-    public MembersResponse toDTO(Members member){
-
-        if(member == null)
+        if (member == null) {
             return null;
-
-
+        }
 
         return MembersResponse.builder()
                 .id(member.getId())
@@ -59,14 +51,11 @@ public class MemberMapper {
                 .maritalStatus(member.getMaritalStatus())
                 .residenceAddress(member.getResidenceAddress())
                 .occupation(member.getOccupation())
-
-                // SAFE LEADER MAPPING
                 .leader(
-                        Hibernate.isInitialized(member.getLeader())
+                        member.getLeader() != null
                                 ? leaderMapper.toDTO(member.getLeader())
                                 : null
                 )
-
                 .emergencyNumber(member.getEmergencyNumber())
                 .profileImageUrl(member.getProfileImageUrl())
                 .createdAt(member.getCreatedAt())

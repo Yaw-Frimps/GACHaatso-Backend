@@ -122,7 +122,7 @@ public class MemberServiceImpl implements MemberService {
 
 
         Members member =
-                repository.findById(id)
+                repository.findWithLeaderById(id)
 
                         .orElseThrow(() ->
                                 new ResourceNotFoundException(
